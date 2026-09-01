@@ -1,0 +1,44 @@
+name: Release v0.1.1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-v0.1.1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tested source
+        uses: actions/checkout@v4
+        with:
+          ref: d05736a76f3899783bafdc29ddd75f006fd6ac90
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10'
+
+      - name: Test and build
+        run: gradle clean test build --stacktrace
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.1.1 \
+            build/libs/MiraSpawners-0.1.1.jar \
+            --target d05736a76f3899783bafdc29ddd75f006fd6ac90 \
+            --title "MiraSpawners v0.1.1" \
+            --notes "MiraSpawners v0.1.1\n\nSpawner item cleanup release. Stacked spawner blocks now break back into real individual spawner item units, so a 54-stack returns 54 spawners. New spawner items use normal Minecraft item stacking, have no custom display name or lore, and no longer write BlockStateMeta that can trigger the modern client warning tooltip. Same-type spawners stack naturally up to 64 in inventories while hidden PDC preserves the mob type. Legacy v0.1.0 compact items remain readable for safe migration."
