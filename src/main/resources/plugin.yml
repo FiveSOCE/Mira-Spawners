@@ -1,5 +1,5 @@
 name: MiraSpawners
-version: 0.1.2
+version: 0.1.3
 main: com.mira.spawners.MiraSpawnersPlugin
 api-version: '1.21'
 authors: [FiveS]
@@ -9,7 +9,7 @@ depend: [MiraCore]
 commands:
   miraspawners:
     description: MiraSpawners administration and diagnostics.
-    usage: /miraspawners <info|test|give|reload|help>
+    usage: /miraspawners <help|give|change|stack|info|test|reload>
     aliases: [mspawners, mspawn]
     permission: miraspawners.admin
 
