@@ -2,6 +2,9 @@ package com.mira.spawners.service;
 
 import com.mira.spawners.MiraSpawnersPlugin;
 import com.mira.spawners.util.StackMath;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -33,15 +36,18 @@ public final class SpawnerItemService {
     }
 
     /**
-     * Creates normal-looking stackable spawner items. The ItemStack amount is the
-     * number of physical spawners. The only Mira metadata written is the hidden
-     * mob type PDC used to restore the correct type when the spawner is placed.
+     * Creates clean stackable spawner items. The ItemStack amount is the number
+     * of physical spawners. The visible item name identifies the mob in plain
+     * white text, while the mob type itself is also stored in hidden PDC.
+     * No lore or BlockStateMeta is written.
      */
     public ItemStack create(EntityType type, int units) {
         int safeAmount = StackMath.clamp(units, 1, plugin.maxSpawnerStack());
         ItemStack item = new ItemStack(Material.SPAWNER, safeAmount);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(mobTypeKey, PersistentDataType.STRING, type.name());
+        meta.displayName(Component.text(prettyName(type) + " Spawner", NamedTextColor.WHITE)
+                .decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }
@@ -74,8 +80,8 @@ public final class SpawnerItemService {
     }
 
     /**
-     * New v0.1.1 items always represent one spawner per physical item. Reading
-     * the old compact-stack key keeps v0.1.0 items safe if somebody still has one.
+     * New items represent one spawner per physical item. Reading the old compact
+     * stack key keeps v0.1.0 items safe if somebody still has one.
      */
     public int unitsPerPhysicalItem(ItemStack item) {
         if (item == null || item.getType() != Material.SPAWNER) {
