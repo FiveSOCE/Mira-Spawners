@@ -4,7 +4,9 @@ import com.mira.core.api.MiraCore;
 import com.mira.spawners.MiraSpawnersPlugin;
 import com.mira.spawners.service.MobStackService;
 import com.mira.spawners.service.SpawnerItemService;
-import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.CreatureSpawner;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -19,6 +21,8 @@ import java.util.List;
 import java.util.Locale;
 
 public final class MiraSpawnersCommand implements TabExecutor {
+    private static final int TARGET_DISTANCE = 6;
+
     private final MiraSpawnersPlugin plugin;
     private final MiraCore core;
     private final SpawnerItemService items;
@@ -45,64 +49,133 @@ public final class MiraSpawnersCommand implements TabExecutor {
         }
 
         switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "give" -> giveSpawner(sender, args);
+            case "change" -> changeHeldSpawner(sender, args);
+            case "stack" -> stackLookedAtSpawner(sender);
             case "info" -> sendInfo(sender);
             case "test" -> runSelfTest(sender);
             case "reload" -> {
                 plugin.reloadPluginConfiguration();
                 core.messages().send(sender, "&aMiraSpawners configuration reloaded.");
             }
-            case "give" -> giveSpawner(sender, args);
             default -> sendHelp(sender);
         }
         return true;
     }
 
     private void giveSpawner(CommandSender sender, String[] args) {
-        if (args.length < 3) {
-            core.messages().send(sender, "&eUsage: /mspawners give <player> <mob> [count]");
+        Player player = requirePlayer(sender);
+        if (player == null) {
+            return;
+        }
+        if (args.length < 2) {
+            core.messages().send(sender, "&eUsage: /mspawners give <spawner> [amount]");
             return;
         }
 
-        Player target = Bukkit.getPlayerExact(args[1]);
-        if (target == null) {
-            core.messages().send(sender, "&cThat player is not online.");
+        EntityType type = parseSpawnerType(args[1]);
+        if (type == null) {
+            core.messages().send(sender, "&cUnknown spawner type: " + args[1]);
             return;
         }
 
-        EntityType type;
-        try {
-            type = EntityType.valueOf(args[2].toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            core.messages().send(sender, "&cUnknown entity type: " + args[2]);
-            return;
-        }
-
-        if (!type.isSpawnable()) {
-            core.messages().send(sender, "&c" + type.name() + " cannot be used as a normal spawner entity.");
-            return;
-        }
-
-        int count = 1;
-        if (args.length >= 4) {
+        int amount = 1;
+        if (args.length >= 3) {
             try {
-                count = Integer.parseInt(args[3]);
+                amount = Integer.parseInt(args[2]);
             } catch (NumberFormatException ex) {
-                core.messages().send(sender, "&cCount must be a positive whole number.");
+                core.messages().send(sender, "&cAmount must be a positive whole number.");
                 return;
             }
         }
-        if (count < 1 || count > 100000) {
-            core.messages().send(sender, "&cCount must be between 1 and 100000.");
+
+        if (amount < 1 || amount > 100000) {
+            core.messages().send(sender, "&cAmount must be between 1 and 100000.");
             return;
         }
 
-        items.give(target, type, count);
-        core.messages().send(sender, "&aGave " + target.getName() + " &f" + count + "x &d"
-                + SpawnerItemService.prettyName(type) + " Spawner&a units.");
-        if (!target.equals(sender)) {
-            core.messages().send(target, "&aYou received &f" + count + "x &d"
-                    + SpawnerItemService.prettyName(type) + " Spawner&a units.");
+        items.give(player, type, amount);
+        core.messages().send(player, "&aGave you &f" + amount + "x &f"
+                + SpawnerItemService.prettyName(type) + " Spawner&a.");
+    }
+
+    private void changeHeldSpawner(CommandSender sender, String[] args) {
+        Player player = requirePlayer(sender);
+        if (player == null) {
+            return;
         }
+        if (args.length < 2) {
+            core.messages().send(sender, "&eUsage: /mspawners change <spawner>");
+            return;
+        }
+
+        EntityType type = parseSpawnerType(args[1]);
+        if (type == null) {
+            core.messages().send(sender, "&cUnknown spawner type: " + args[1]);
+            return;
+        }
+
+        ItemStack held = player.getInventory().getItemInMainHand();
+        if (held.getType() != Material.SPAWNER) {
+            core.messages().send(player, "&cHold a spawner in your main hand first.");
+            return;
+        }
+
+        int units = Math.max(1, items.totalUnits(held));
+        player.getInventory().setItemInMainHand(items.create(type, units));
+        core.messages().send(player, "&aChanged your held spawner stack to &f"
+                + SpawnerItemService.prettyName(type) + " Spawner&a.");
+    }
+
+    private void stackLookedAtSpawner(CommandSender sender) {
+        Player player = requirePlayer(sender);
+        if (player == null) {
+            return;
+        }
+
+        Block target = player.getTargetBlockExact(TARGET_DISTANCE);
+        if (target == null || target.getType() != Material.SPAWNER
+                || !(target.getState() instanceof CreatureSpawner spawner)) {
+            core.messages().send(player, "&cLook directly at a spawner within " + TARGET_DISTANCE + " blocks.");
+            return;
+        }
+
+        EntityType type = spawner.getSpawnedType();
+        plugin.spawnerData().setStackSize(spawner, plugin.maxSpawnerStack());
+        String name = type == null ? "Unknown" : SpawnerItemService.prettyName(type);
+        core.messages().send(player, "&a" + name + " Spawner Stack: &f"
+                + plugin.maxSpawnerStack() + "/" + plugin.maxSpawnerStack());
+    }
+
+    private Player requirePlayer(CommandSender sender) {
+        if (sender instanceof Player player) {
+            return player;
+        }
+        core.messages().send(sender, "&cThat command can only be run by a player.");
+        return null;
+    }
+
+    private EntityType parseSpawnerType(String input) {
+        String normalized = input.trim().toUpperCase(Locale.ROOT)
+                .replace('-', '_')
+                .replace(' ', '_');
+        if (normalized.endsWith("_SPAWNER")) {
+            normalized = normalized.substring(0, normalized.length() - "_SPAWNER".length());
+        }
+        try {
+            EntityType type = EntityType.valueOf(normalized);
+            return type.isSpawnable() ? type : null;
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private List<String> spawnerTypes() {
+        return Arrays.stream(EntityType.values())
+                .filter(EntityType::isSpawnable)
+                .map(type -> type.name().toLowerCase(Locale.ROOT))
+                .sorted()
+                .toList();
     }
 
     private void sendInfo(CommandSender sender) {
@@ -129,11 +202,11 @@ public final class MiraSpawnersCommand implements TabExecutor {
                     && testItem.getAmount() == plugin.maxSpawnerStack()
                     && items.unitsPerPhysicalItem(testItem) == 1
                     && items.totalUnits(testItem) == plugin.maxSpawnerStack()
-                    && !testItem.getItemMeta().hasDisplayName()
+                    && testItem.getItemMeta().hasDisplayName()
                     && !testItem.getItemMeta().hasLore();
-            results.add(check("Vanilla-looking spawner item round-trip", roundTrip));
+            results.add(check("Named spawner item round-trip", roundTrip));
         } catch (RuntimeException ex) {
-            results.add(check("Vanilla-looking spawner item round-trip", false));
+            results.add(check("Named spawner item round-trip", false));
         }
 
         results.add(check("Mob stack service", mobs != null));
@@ -156,10 +229,11 @@ public final class MiraSpawnersCommand implements TabExecutor {
 
     private void sendHelp(CommandSender sender) {
         core.messages().send(sender, "&dMiraSpawners Commands");
-        core.messages().send(sender, "&f/mspawners info &7- Show current settings");
-        core.messages().send(sender, "&f/mspawners test &7- Run runtime diagnostics");
-        core.messages().send(sender, "&f/mspawners give <player> <mob> [count] &7- Give spawner units");
-        core.messages().send(sender, "&f/mspawners reload &7- Reload config.yml");
+        core.messages().send(sender, "&f/mspawners give <spawner> [amount] &7- Give yourself spawners");
+        core.messages().send(sender, "&f/mspawners change <spawner> &7- Change the held spawner type");
+        core.messages().send(sender, "&f/mspawners stack &7- Set the spawner you are looking at to 64");
+        core.messages().send(sender, "&f/mspawners help &7- Show this help");
+        core.messages().send(sender, "&8Diagnostics: /mspawners info, /mspawners test, /mspawners reload");
     }
 
     @Override
@@ -168,17 +242,13 @@ public final class MiraSpawnersCommand implements TabExecutor {
             return Collections.emptyList();
         }
         if (args.length == 1) {
-            return filter(List.of("info", "test", "give", "reload", "help"), args[0]);
+            return filter(List.of("help", "give", "change", "stack", "info", "test", "reload"), args[0]);
         }
-        if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
-            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), args[1]);
+        if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("change"))) {
+            return filter(spawnerTypes(), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
-            List<String> types = Arrays.stream(EntityType.values())
-                    .filter(EntityType::isSpawnable)
-                    .map(type -> type.name().toLowerCase(Locale.ROOT))
-                    .toList();
-            return filter(types, args[2]);
+            return filter(List.of("1", "16", "32", "64"), args[2]);
         }
         return Collections.emptyList();
     }
