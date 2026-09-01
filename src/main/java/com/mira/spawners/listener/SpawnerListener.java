@@ -1,0 +1,168 @@
+package com.mira.spawners.listener;
+
+import com.mira.core.api.MiraCore;
+import com.mira.spawners.MiraSpawnersPlugin;
+import com.mira.spawners.service.MobStackService;
+import com.mira.spawners.service.SpawnerDataService;
+import com.mira.spawners.service.SpawnerItemService;
+import com.mira.spawners.util.StackMath;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.CreatureSpawner;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.SpawnerSpawnEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Optional;
+
+public final class SpawnerListener implements Listener {
+    private final MiraSpawnersPlugin plugin;
+    private final MiraCore core;
+    private final SpawnerDataService data;
+    private final SpawnerItemService items;
+    private final MobStackService mobs;
+
+    public SpawnerListener(MiraSpawnersPlugin plugin, MiraCore core, SpawnerDataService data,
+                           SpawnerItemService items, MobStackService mobs) {
+        this.plugin = plugin;
+        this.core = core;
+        this.data = data;
+        this.items = items;
+        this.mobs = mobs;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSpawnerInteract(PlayerInteractEvent event) {
+        Block clicked = event.getClickedBlock();
+        if (clicked == null || clicked.getType() != Material.SPAWNER
+                || !(clicked.getState() instanceof CreatureSpawner spawner)) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            if (player.hasPermission("miraspawners.inspect")) {
+                EntityType type = spawner.getSpawnedType();
+                String name = type == null ? "Unknown" : SpawnerItemService.prettyName(type);
+                core.messages().send(player, "&f" + name + " Spawner Stack: &a"
+                        + data.stackSize(spawner) + "/" + plugin.maxSpawnerStack());
+            }
+            return;
+        }
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || player.isSneaking()
+                || !player.hasPermission("miraspawners.stack")) {
+            return;
+        }
+
+        ItemStack held = event.getItem();
+        Optional<EntityType> heldType = items.type(held);
+        EntityType existingType = spawner.getSpawnedType();
+        EquipmentSlot hand = event.getHand();
+        if (heldType.isEmpty() || existingType == null || hand == null || heldType.get() != existingType) {
+            return;
+        }
+
+        int current = data.stackSize(spawner);
+        int incoming = items.totalUnits(held);
+        StackMath.Transfer transfer = StackMath.transfer(current, incoming, plugin.maxSpawnerStack());
+        event.setCancelled(true);
+
+        if (transfer.accepted() <= 0) {
+            core.messages().send(player, "&cThat " + SpawnerItemService.prettyName(existingType)
+                    + " Spawner is already at the maximum stack size of " + plugin.maxSpawnerStack() + ".");
+            return;
+        }
+
+        data.setStackSize(spawner, current + transfer.accepted());
+        items.consumeHeldUnits(player, hand, transfer.accepted());
+        core.messages().send(player, "&f" + SpawnerItemService.prettyName(existingType)
+                + " Spawner Stack: &a" + data.stackSize(spawner) + "/" + plugin.maxSpawnerStack());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSpawnerPlace(BlockPlaceEvent event) {
+        if (event.getBlockPlaced().getType() != Material.SPAWNER
+                || !(event.getBlockPlaced().getState() instanceof CreatureSpawner spawner)) {
+            return;
+        }
+
+        ItemStack placedItem = event.getItemInHand();
+        EntityType type = items.type(placedItem).orElse(spawner.getSpawnedType());
+        if (type != null) {
+            spawner.setSpawnedType(type);
+        }
+        data.write(spawner, items.unitsPerPhysicalItem(placedItem), true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSpawnerBreak(BlockBreakEvent event) {
+        if (event.getBlock().getType() != Material.SPAWNER
+                || !(event.getBlock().getState() instanceof CreatureSpawner spawner)) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (!player.hasPermission("miraspawners.mine")) {
+            return;
+        }
+        if (!plugin.naturalSpawnersHarvestable() && !data.isManaged(spawner)) {
+            return;
+        }
+        if (plugin.silkTouchRequired()
+                && player.getInventory().getItemInMainHand().getEnchantmentLevel(Enchantment.SILK_TOUCH) <= 0) {
+            return;
+        }
+
+        event.setDropItems(false);
+        event.setExpToDrop(0);
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
+
+        EntityType type = spawner.getSpawnedType();
+        if (type == null) {
+            return;
+        }
+        ItemStack drop = items.create(type, data.stackSize(spawner));
+        player.getWorld().dropItemNaturally(event.getBlock().getLocation().add(0.5, 0.5, 0.5), drop);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityExplosion(EntityExplodeEvent event) {
+        if (plugin.protectSpawnersFromExplosions()) {
+            event.blockList().removeIf(block -> block.getType() == Material.SPAWNER);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockExplosion(BlockExplodeEvent event) {
+        if (plugin.protectSpawnersFromExplosions()) {
+            event.blockList().removeIf(block -> block.getType() == Material.SPAWNER);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSpawnerSpawn(SpawnerSpawnEvent event) {
+        mobs.handleSpawnerSpawn(event);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEntityDeath(EntityDeathEvent event) {
+        mobs.handleDeath(event);
+    }
+}

@@ -1,0 +1,28 @@
+name: MiraSpawners
+version: 0.1.0
+main: com.mira.spawners.MiraSpawnersPlugin
+api-version: '1.21'
+authors: [FiveS]
+description: Stackable spawners and performance-friendly mob stacking for the Mira plugin ecosystem.
+depend: [MiraCore]
+
+commands:
+  miraspawners:
+    description: MiraSpawners administration and diagnostics.
+    usage: /miraspawners <info|test|give|reload|help>
+    aliases: [mspawners, mspawn]
+    permission: miraspawners.admin
+
+permissions:
+  miraspawners.admin:
+    description: Allows MiraSpawners administration commands.
+    default: op
+  miraspawners.mine:
+    description: Allows Silk Touch harvesting of mob spawners.
+    default: true
+  miraspawners.stack:
+    description: Allows stacking identical spawners together.
+    default: true
+  miraspawners.inspect:
+    description: Allows left-click inspection of spawner stack sizes.
+    default: true

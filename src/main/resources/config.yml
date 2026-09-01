@@ -1,0 +1,11 @@
+spawners:
+  max-stack-size: 64
+  silk-touch-required: true
+  natural-spawners-harvestable: true
+  protect-from-explosions: true
+
+mobs:
+  max-stack-size: 1000
+  merge-radius: 6.0
+  show-stack-name: true
+  lava-stack-kill: true
