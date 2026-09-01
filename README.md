@@ -4,7 +4,7 @@ MiraSpawners is the spawner and mob-farming layer for the Mira Minecraft plugin 
 
 ## Download
 
-[**Download MiraSpawners v0.1.2**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.2/MiraSpawners-0.1.2.jar)
+[**Download MiraSpawners v0.1.3**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.3/MiraSpawners-0.1.3.jar)
 
 ## Requirements
 
@@ -127,34 +127,33 @@ MiraSpawners then produces loot for the entire stack. The first mob uses Bukkit'
 
 This triggers only when the fatal damage cause is exactly `LAVA`.
 
-It does **not** trigger for:
-
-- fire
-- fire tick
-- Fire Aspect
-- magma blocks
-- campfires
-- fall damage
-- drowning
-- suffocation
-- cactus
-- explosions
-- player damage
-
-## Explosion protection
-
-Spawner blocks are protected from TNT, creeper and other block/entity explosions by default. This can be disabled in config.
+It does **not** trigger for fire, fire tick, Fire Aspect, magma blocks, campfires, fall damage, drowning, suffocation, cactus, explosions or player damage.
 
 ## Commands
 
-All commands require `miraspawners.admin`, which defaults to OP.
+All `/mspawners` commands require `miraspawners.admin`, which defaults to OP.
+
+```text
+/mspawners
+/mspawners help
+/mspawners give <spawner> [amount]
+/mspawners change <spawner>
+/mspawners stack
+```
+
+- `/mspawners` and `/mspawners help` show the command menu.
+- `/mspawners give <spawner> [amount]` gives the executing player the selected spawner. Amount defaults to `1`.
+- `/mspawners change <spawner>` changes the entire spawner stack held in the player's main hand to the selected mob type.
+- `/mspawners stack` sets the spawner block the player is directly looking at, within 6 blocks, to the configured maximum stack size of 64.
+
+Spawner names use entity IDs such as `zombie`, `skeleton`, `creeper`, `blaze` and `iron_golem`. Tab completion is provided.
+
+Diagnostic commands remain available:
 
 ```text
 /mspawners info
 /mspawners test
-/mspawners give <player> <mob> [count]
 /mspawners reload
-/mspawners help
 ```
 
 Aliases:
@@ -175,21 +174,35 @@ After installing MiraCore and MiraSpawners, run:
 
 A healthy installation should show every diagnostic as passed.
 
-For a practical test:
+For a practical command test:
 
 ```text
-/mspawners give YourName zombie 54
+/mspawners give zombie 54
 ```
 
-You should receive a stack of 54 items named `Zombie Spawner` in plain white text with no lore. Place one, right-click the remaining 53 onto it, then left-click the placed spawner and verify the chat reports `54/64`.
+You should receive 54 items named `Zombie Spawner` in plain white text with no lore. Place one, right-click the remaining 53 onto it, then left-click the placed spawner and verify the chat reports `54/64`.
 
-Break that stack with Silk Touch and verify 54 `Zombie Spawner` item units are returned.
+You can also look directly at a placed spawner and run:
+
+```text
+/mspawners stack
+```
+
+to set it immediately to `64/64`.
+
+Hold a spawner and run:
+
+```text
+/mspawners change skeleton
+```
+
+to convert the held stack into `Skeleton Spawner` items while preserving the number of spawners held.
 
 ## Permissions
 
 | Permission | Default | Purpose |
 | --- | --- | --- |
-| `miraspawners.admin` | OP | Admin commands and diagnostics |
+| `miraspawners.admin` | OP | `/mspawners` commands and diagnostics |
 | `miraspawners.mine` | Everyone | Silk Touch spawner harvesting |
 | `miraspawners.stack` | Everyone | Right-click spawner stacking |
 | `miraspawners.inspect` | Everyone | Left-click stack inspection |
@@ -228,7 +241,7 @@ MiraSpawnersApi spawners = core.services()
 ItemStack item = spawners.createSpawner(EntityType.ZOMBIE, 64);
 ```
 
-In v0.1.2 that API call returns an ItemStack containing 64 actual Zombie Spawner item units with the clean white `Zombie Spawner` display name.
+That API call returns an ItemStack containing 64 actual Zombie Spawner item units with the clean white `Zombie Spawner` display name.
 
 ## Persistence and safety
 
@@ -253,7 +266,7 @@ The Gradle build automatically downloads the pinned MiraCore 0.1.0 release JAR a
 The built plugin is produced at:
 
 ```text
-build/libs/MiraSpawners-0.1.2.jar
+build/libs/MiraSpawners-0.1.3.jar
 ```
 
 GitHub Actions runs unit tests, compiles against Paper 1.21.11 and uploads the built JAR as the `MiraSpawners` artifact.
