@@ -2,8 +2,6 @@ package com.mira.spawners.service;
 
 import com.mira.spawners.MiraSpawnersPlugin;
 import com.mira.spawners.util.StackMath;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -15,7 +13,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
@@ -23,48 +20,29 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 public final class SpawnerItemService {
     private final MiraSpawnersPlugin plugin;
     private final NamespacedKey mobTypeKey;
-    private final NamespacedKey stackSizeKey;
-    private final NamespacedKey tokenKey;
+    private final NamespacedKey legacyStackSizeKey;
 
     public SpawnerItemService(MiraSpawnersPlugin plugin) {
         this.plugin = plugin;
         this.mobTypeKey = new NamespacedKey(plugin, "spawner_mob_type");
-        this.stackSizeKey = new NamespacedKey(plugin, "spawner_item_stack_size");
-        this.tokenKey = new NamespacedKey(plugin, "spawner_item_token");
+        this.legacyStackSizeKey = new NamespacedKey(plugin, "spawner_item_stack_size");
     }
 
-    public ItemStack create(EntityType type, int stackSize) {
-        int safeSize = StackMath.clamp(stackSize, 1, plugin.maxSpawnerStack());
-        ItemStack item = new ItemStack(Material.SPAWNER, 1);
-        ItemMeta rawMeta = item.getItemMeta();
-
-        PersistentDataContainer pdc = rawMeta.getPersistentDataContainer();
-        pdc.set(mobTypeKey, PersistentDataType.STRING, type.name());
-        pdc.set(stackSizeKey, PersistentDataType.INTEGER, safeSize);
-        pdc.set(tokenKey, PersistentDataType.STRING, UUID.randomUUID().toString());
-
-        rawMeta.displayName(Component.text(prettyName(type) + " Spawner", NamedTextColor.LIGHT_PURPLE));
-        rawMeta.lore(List.of(
-                Component.text("Stack Size: ", NamedTextColor.GRAY)
-                        .append(Component.text(safeSize + "/" + plugin.maxSpawnerStack(), NamedTextColor.GREEN)),
-                Component.empty(),
-                Component.text("Place to deploy this spawner stack.", NamedTextColor.DARK_GRAY)
-        ));
-
-        if (rawMeta instanceof BlockStateMeta blockStateMeta) {
-            BlockState state = blockStateMeta.getBlockState();
-            if (state instanceof CreatureSpawner spawner) {
-                spawner.setSpawnedType(type);
-                blockStateMeta.setBlockState(spawner);
-            }
-        }
-
-        item.setItemMeta(rawMeta);
+    /**
+     * Creates normal-looking stackable spawner items. The ItemStack amount is the
+     * number of physical spawners. The only Mira metadata written is the hidden
+     * mob type PDC used to restore the correct type when the spawner is placed.
+     */
+    public ItemStack create(EntityType type, int units) {
+        int safeAmount = StackMath.clamp(units, 1, plugin.maxSpawnerStack());
+        ItemStack item = new ItemStack(Material.SPAWNER, safeAmount);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(mobTypeKey, PersistentDataType.STRING, type.name());
+        item.setItemMeta(meta);
         return item;
     }
 
@@ -83,6 +61,9 @@ public final class SpawnerItemService {
             }
         }
 
+        // Backwards compatibility for older/custom spawner items that encode the
+        // mob directly in BlockStateMeta. New MiraSpawners items never write this
+        // data because it causes the modern client block-entity warning tooltip.
         if (meta instanceof BlockStateMeta blockStateMeta) {
             BlockState state = blockStateMeta.getBlockState();
             if (state instanceof CreatureSpawner spawner && spawner.getSpawnedType() != null) {
@@ -92,13 +73,20 @@ public final class SpawnerItemService {
         return Optional.empty();
     }
 
+    /**
+     * New v0.1.1 items always represent one spawner per physical item. Reading
+     * the old compact-stack key keeps v0.1.0 items safe if somebody still has one.
+     */
     public int unitsPerPhysicalItem(ItemStack item) {
-        if (item == null || item.getType() != Material.SPAWNER || !item.hasItemMeta()) {
+        if (item == null || item.getType() != Material.SPAWNER) {
             return 1;
         }
-        Integer stored = item.getItemMeta().getPersistentDataContainer()
-                .get(stackSizeKey, PersistentDataType.INTEGER);
-        return StackMath.clamp(stored == null ? 1 : stored, 1, plugin.maxSpawnerStack());
+        if (!item.hasItemMeta()) {
+            return 1;
+        }
+        Integer legacy = item.getItemMeta().getPersistentDataContainer()
+                .get(legacyStackSizeKey, PersistentDataType.INTEGER);
+        return StackMath.clamp(legacy == null ? 1 : legacy, 1, plugin.maxSpawnerStack());
     }
 
     public int totalUnits(ItemStack item) {

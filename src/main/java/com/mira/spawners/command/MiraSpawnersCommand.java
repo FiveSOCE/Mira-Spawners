@@ -126,10 +126,14 @@ public final class MiraSpawnersCommand implements TabExecutor {
         try {
             ItemStack testItem = items.create(EntityType.ZOMBIE, plugin.maxSpawnerStack());
             boolean roundTrip = items.type(testItem).orElse(null) == EntityType.ZOMBIE
-                    && items.unitsPerPhysicalItem(testItem) == plugin.maxSpawnerStack();
-            results.add(check("Spawner item PDC round-trip", roundTrip));
+                    && testItem.getAmount() == plugin.maxSpawnerStack()
+                    && items.unitsPerPhysicalItem(testItem) == 1
+                    && items.totalUnits(testItem) == plugin.maxSpawnerStack()
+                    && !testItem.getItemMeta().hasDisplayName()
+                    && !testItem.getItemMeta().hasLore();
+            results.add(check("Vanilla-looking spawner item round-trip", roundTrip));
         } catch (RuntimeException ex) {
-            results.add(check("Spawner item PDC round-trip", false));
+            results.add(check("Vanilla-looking spawner item round-trip", false));
         }
 
         results.add(check("Mob stack service", mobs != null));
