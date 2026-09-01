@@ -1,3 +1,6 @@
+import java.net.URI
+import java.security.MessageDigest
+
 plugins {
     java
 }
@@ -17,8 +20,8 @@ val miraCoreJar = layout.projectDirectory.file("libs/MiraCore-$miraCoreVersion.j
 val downloadMiraCore by tasks.registering {
     doLast {
         fun sha256(file: File): String {
-            val digest = java.security.MessageDigest.getInstance("SHA-256")
-            return digest.digest(file.readBytes()).joinToString("") { "%02x".format(it) }
+            val digest = MessageDigest.getInstance("SHA-256")
+            return digest.digest(file.readBytes()).joinToString("") { byte -> "%02x".format(byte) }
         }
 
         if (miraCoreJar.exists() && sha256(miraCoreJar) == miraCoreSha256) {
@@ -27,7 +30,7 @@ val downloadMiraCore by tasks.registering {
 
         miraCoreJar.parentFile.mkdirs()
         val url = "https://github.com/FiveSOCE/MIra-core/releases/download/v$miraCoreVersion/MiraCore-$miraCoreVersion.jar"
-        java.net.URI(url).toURL().openStream().use { input ->
+        URI(url).toURL().openStream().use { input ->
             miraCoreJar.outputStream().use { output -> input.copyTo(output) }
         }
 
