@@ -35,3 +35,5 @@ jobs:
           name: MiraSpawners
           path: build/libs/MiraSpawners-0.1.0.jar
           if-no-files-found: error
+
+# MiraSpawners CI
