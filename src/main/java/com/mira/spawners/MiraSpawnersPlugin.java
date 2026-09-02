@@ -5,7 +5,9 @@ import com.mira.core.api.MiraCoreProvider;
 import com.mira.core.api.ModuleHealth;
 import com.mira.spawners.api.MiraSpawnersApi;
 import com.mira.spawners.command.MiraSpawnersCommand;
+import com.mira.spawners.listener.MobSpawnPolicyListener;
 import com.mira.spawners.listener.SpawnerListener;
+import com.mira.spawners.service.MobSpawnPolicyService;
 import com.mira.spawners.service.MobStackService;
 import com.mira.spawners.service.SpawnerDataService;
 import com.mira.spawners.service.SpawnerItemService;
@@ -19,6 +21,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
     private SpawnerDataService spawnerData;
     private SpawnerItemService spawnerItems;
     private MobStackService mobStacks;
+    private MobSpawnPolicyService mobSpawnPolicy;
     private MiraSpawnersApi api;
 
     @Override
@@ -29,6 +32,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         spawnerData = new SpawnerDataService(this);
         spawnerItems = new SpawnerItemService(this);
         mobStacks = new MobStackService(this, spawnerData);
+        mobSpawnPolicy = new MobSpawnPolicyService(this);
         api = new MiraSpawnersApiImpl(this, spawnerItems, mobStacks);
 
         core.modules().register(this, "MiraSpawners");
@@ -36,6 +40,8 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(
                 new SpawnerListener(this, core, spawnerData, spawnerItems, mobStacks), this);
+        getServer().getPluginManager().registerEvents(
+                new MobSpawnPolicyListener(mobSpawnPolicy), this);
 
         MiraSpawnersCommand command = new MiraSpawnersCommand(this, core, spawnerItems, mobStacks);
         PluginCommand pluginCommand = getCommand("miraspawners");
@@ -47,7 +53,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         pluginCommand.setTabCompleter(command);
 
         core.modules().setHealth(this, ModuleHealth.HEALTHY,
-                "Spawner stacking, mob stacking and lava farm handling ready");
+                "Spawner stacking, spawner-only hostile mobs and mob stacking ready");
         getLogger().info("MiraSpawners v" + getPluginMeta().getVersion() + " enabled.");
     }
 
@@ -75,6 +81,10 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
 
     public MobStackService mobStacks() {
         return mobStacks;
+    }
+
+    public MobSpawnPolicyService mobSpawnPolicy() {
+        return mobSpawnPolicy;
     }
 
     public int maxSpawnerStack() {
@@ -112,5 +122,8 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
 
     public void reloadPluginConfiguration() {
         reloadConfig();
+        if (mobSpawnPolicy != null) {
+            mobSpawnPolicy.reload();
+        }
     }
 }
