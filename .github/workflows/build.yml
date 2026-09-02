@@ -33,7 +33,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MiraSpawners
-          path: build/libs/MiraSpawners-0.1.4.jar
+          path: build/libs/MiraSpawners-*.jar
           if-no-files-found: error
-
-# MiraSpawners CI
