@@ -10,6 +10,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
@@ -97,7 +98,7 @@ public final class MobStackService {
             if (world == null) {
                 return;
             }
-            Entity replacement = world.spawnEntity(location, type);
+            Entity replacement = world.spawnEntity(location, type, CreatureSpawnEvent.SpawnReason.SPAWNER);
             if (replacement instanceof LivingEntity living) {
                 setStackSize(living, remaining);
             }
