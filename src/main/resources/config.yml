@@ -9,3 +9,12 @@ mobs:
   merge-radius: 6.0
   show-stack-name: true
   lava-stack-kill: true
+
+  # Hostile mobs may only exist when their spawn reason is a normal mob spawner.
+  block-non-spawner-hostiles: true
+
+  # These mobs are disabled completely, including normal spawners, eggs,
+  # commands, plugins and already-loaded entities.
+  fully-blocked-types:
+    - BAT
+    - STRAY
