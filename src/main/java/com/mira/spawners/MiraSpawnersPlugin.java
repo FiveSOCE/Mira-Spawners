@@ -12,6 +12,7 @@ import com.mira.spawners.service.MobStackService;
 import com.mira.spawners.service.SpawnerDataService;
 import com.mira.spawners.service.SpawnerItemService;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class MiraSpawnersPlugin extends JavaPlugin {
@@ -32,7 +33,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         spawnerData = new SpawnerDataService(this);
         spawnerItems = new SpawnerItemService(this);
         mobStacks = new MobStackService(this, spawnerData);
-        mobSpawnPolicy = new MobSpawnPolicyService(this);
+        mobSpawnPolicy = new MobSpawnPolicyService(this, mobStacks);
         api = new MiraSpawnersApiImpl(this, spawnerItems, mobStacks);
 
         core.modules().register(this, "MiraSpawners");
@@ -53,7 +54,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         pluginCommand.setTabCompleter(command);
 
         core.modules().setHealth(this, ModuleHealth.HEALTHY,
-                "Spawner stacking, spawner-only hostile mobs and mob stacking ready");
+                "Player-spawner-only hostile mobs, spawner stacking and mob stacking ready");
         getLogger().info("MiraSpawners v" + getPluginMeta().getVersion() + " enabled.");
     }
 
@@ -67,25 +68,11 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         }
     }
 
-    public MiraCore core() {
-        return core;
-    }
-
-    public SpawnerDataService spawnerData() {
-        return spawnerData;
-    }
-
-    public SpawnerItemService spawnerItems() {
-        return spawnerItems;
-    }
-
-    public MobStackService mobStacks() {
-        return mobStacks;
-    }
-
-    public MobSpawnPolicyService mobSpawnPolicy() {
-        return mobSpawnPolicy;
-    }
+    public MiraCore core() { return core; }
+    public SpawnerDataService spawnerData() { return spawnerData; }
+    public SpawnerItemService spawnerItems() { return spawnerItems; }
+    public MobStackService mobStacks() { return mobStacks; }
+    public MobSpawnPolicyService mobSpawnPolicy() { return mobSpawnPolicy; }
 
     public int maxSpawnerStack() {
         return Math.max(1, Math.min(HARD_MAX_SPAWNER_STACK,

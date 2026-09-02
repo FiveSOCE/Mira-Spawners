@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -179,7 +180,10 @@ public final class SpawnerListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSpawnerSpawn(SpawnerSpawnEvent event) {
-        if (plugin.mobSpawnPolicy().isFullyBlocked(event.getEntityType())) {
+        if (!(event.getEntity() instanceof LivingEntity living)) {
+            return;
+        }
+        if (plugin.mobSpawnPolicy().shouldCancelSpawnerSpawn(living, event.getSpawner())) {
             event.setCancelled(true);
             return;
         }

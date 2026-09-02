@@ -10,10 +10,12 @@ mobs:
   show-stack-name: true
   lava-stack-kill: true
 
-  # Hostile mobs may only exist when their spawn reason is a normal mob spawner.
+  # Hostile mobs may only exist when they originate from a Mira-managed,
+  # player-placed mob spawner. Natural hostile spawning and natural vanilla
+  # hostile spawners are blocked.
   block-non-spawner-hostiles: true
 
-  # These mobs are disabled completely, including normal spawners, eggs,
+  # These mobs are disabled completely, including spawners, eggs,
   # commands, plugins and already-loaded entities.
   fully-blocked-types:
     - BAT
