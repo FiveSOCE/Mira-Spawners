@@ -75,7 +75,7 @@ public final class MiraSpawnersCommand implements TabExecutor {
 
         EntityType type = parseSpawnerType(args[1]);
         if (type == null) {
-            core.messages().send(sender, "&cUnknown spawner type: " + args[1]);
+            core.messages().send(sender, "&cUnknown or disabled spawner type: " + args[1]);
             return;
         }
 
@@ -111,7 +111,7 @@ public final class MiraSpawnersCommand implements TabExecutor {
 
         EntityType type = parseSpawnerType(args[1]);
         if (type == null) {
-            core.messages().send(sender, "&cUnknown spawner type: " + args[1]);
+            core.messages().send(sender, "&cUnknown or disabled spawner type: " + args[1]);
             return;
         }
 
@@ -141,6 +141,11 @@ public final class MiraSpawnersCommand implements TabExecutor {
         }
 
         EntityType type = spawner.getSpawnedType();
+        if (type != null && plugin.mobSpawnPolicy().isFullyBlocked(type)) {
+            core.messages().send(player, "&cThat mob type is disabled by MiraSpawners.");
+            return;
+        }
+
         plugin.spawnerData().setStackSize(spawner, plugin.maxSpawnerStack());
         String name = type == null ? "Unknown" : SpawnerItemService.prettyName(type);
         core.messages().send(player, "&a" + name + " Spawner Stack: &f"
@@ -164,7 +169,7 @@ public final class MiraSpawnersCommand implements TabExecutor {
         }
         try {
             EntityType type = EntityType.valueOf(normalized);
-            return type.isSpawnable() ? type : null;
+            return type.isSpawnable() && !plugin.mobSpawnPolicy().isFullyBlocked(type) ? type : null;
         } catch (IllegalArgumentException ex) {
             return null;
         }
@@ -173,6 +178,7 @@ public final class MiraSpawnersCommand implements TabExecutor {
     private List<String> spawnerTypes() {
         return Arrays.stream(EntityType.values())
                 .filter(EntityType::isSpawnable)
+                .filter(type -> !plugin.mobSpawnPolicy().isFullyBlocked(type))
                 .map(type -> type.name().toLowerCase(Locale.ROOT))
                 .sorted()
                 .toList();
@@ -183,6 +189,10 @@ public final class MiraSpawnersCommand implements TabExecutor {
         core.messages().send(sender, "&7Spawner stack maximum: &f" + plugin.maxSpawnerStack());
         core.messages().send(sender, "&7Mob stack maximum: &f" + plugin.maxMobStack());
         core.messages().send(sender, "&7Mob merge radius: &f" + plugin.mergeRadius() + " blocks");
+        core.messages().send(sender, "&7Spawner-only hostile mobs: "
+                + (plugin.mobSpawnPolicy().blockNonSpawnerHostiles() ? "&aEnabled" : "&cDisabled"));
+        core.messages().send(sender, "&7Fully blocked mobs: &f"
+                + plugin.mobSpawnPolicy().fullyBlockedTypes().stream().map(EntityType::name).sorted().toList());
         core.messages().send(sender, "&7Lava stack kill: " + (plugin.lavaStackKill() ? "&aEnabled" : "&cDisabled"));
         core.messages().send(sender, "&7Explosion protection: "
                 + (plugin.protectSpawnersFromExplosions() ? "&aEnabled" : "&cDisabled"));
@@ -195,6 +205,7 @@ public final class MiraSpawnersCommand implements TabExecutor {
         results.add(check("Spawner hard cap", plugin.maxSpawnerStack() >= 1 && plugin.maxSpawnerStack() <= 64));
         results.add(check("Mob stack configuration", plugin.maxMobStack() >= plugin.maxSpawnerStack()));
         results.add(check("Merge radius configuration", plugin.mergeRadius() >= 0.5D));
+        results.add(check("Spawn policy service", plugin.mobSpawnPolicy() != null));
 
         try {
             ItemStack testItem = items.create(EntityType.ZOMBIE, plugin.maxSpawnerStack());
