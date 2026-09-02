@@ -4,7 +4,11 @@ MiraSpawners is the spawner and mob-farming layer for the Mira Minecraft plugin 
 
 ## Download
 
-[**Download MiraSpawners v0.1.3**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.3/MiraSpawners-0.1.3.jar)
+[**Download MiraSpawners v0.1.5**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.5/MiraSpawners-0.1.5.jar)
+
+[View the latest GitHub release](https://github.com/FiveSOCE/Mira-Spawners/releases/latest)
+
+Current release: **v0.1.5**
 
 ## Requirements
 
@@ -21,7 +25,7 @@ Mob spawners can be harvested with a Silk Touch tool.
 - A block stack of 54 therefore gives back 54 spawner items, which Minecraft may naturally hold as one inventory stack of 54.
 - Broken spawner items have one clean white display name such as `Zombie Spawner` and no lore.
 - MiraSpawners does not write block-state metadata to new spawner items, avoiding the modern client warning tooltip associated with special block-entity item data.
-- Natural spawners are harvestable by default.
+- Natural spawners are harvestable by default, but hostile mobs from natural vanilla spawners are blocked by the hostile spawn policy.
 - Creative-mode breaking does not create a custom drop.
 - Breaking without the required Silk Touch destroys the spawner normally.
 
@@ -74,6 +78,14 @@ Left-click a spawner to receive a chat message such as:
 [Mira] Zombie Spawner Stack: 37/64
 ```
 
+## Hostile mob spawn policy
+
+Hostile mobs are allowed only when they originate from a **Mira-managed/player-placed spawner**. Darkness spawns, patrols, reinforcements, portals, commands/plugins, natural hostile vanilla spawners and other unmanaged hostile spawn paths are rejected.
+
+Existing unmanaged hostile mobs are cleaned when encountered or loaded. `BAT` and `STRAY` are fully blocked and cannot survive as MiraSpawner mobs either.
+
+MiraSpawners-managed mobs are marked with provenance data so their later stack replacement/death flow remains valid without reopening natural hostile spawning.
+
 ## Breaking a stacked spawner
 
 Breaking a managed spawner with the required Silk Touch tool converts the block stack back into actual spawner item units.
@@ -102,7 +114,7 @@ Zombie x247
 
 Default mob stack maximum: **1000**.
 
-Only MiraSpawners-managed spawner mobs are merged. Naturally spawned mobs are not automatically absorbed into farm stacks.
+Only MiraSpawners-managed spawner mobs are merged.
 
 ## Normal deaths
 
@@ -221,6 +233,10 @@ mobs:
   merge-radius: 6.0
   show-stack-name: true
   lava-stack-kill: true
+  block-non-spawner-hostiles: true
+  fully-blocked-types:
+    - BAT
+    - STRAY
 ```
 
 `spawners.max-stack-size` can be lowered, but MiraSpawners enforces an absolute maximum of **64**.
@@ -248,7 +264,7 @@ That API call returns an ItemStack containing 64 actual Zombie Spawner item unit
 - Spawner block stack size is stored in the spawner TileState PersistentDataContainer.
 - New spawner items store the hidden mob type plus a plain white mob-specific display name.
 - ItemStack amount represents the real number of spawners in the inventory stack.
-- Legacy v0.1.0 compact spawner items are still understood when consumed or placed so existing items do not silently lose their stored count.
+- Legacy compact spawner items are still understood when consumed or placed so existing items do not silently lose their stored count.
 - Mob stack size is stored on the entity PDC and survives normal chunk unload/load cycles.
 - Spawner block stacks are capped at 64.
 - Mob stacks are capped independently, defaulting to 1000.
@@ -266,7 +282,7 @@ The Gradle build automatically downloads the pinned MiraCore 0.1.0 release JAR a
 The built plugin is produced at:
 
 ```text
-build/libs/MiraSpawners-0.1.3.jar
+build/libs/MiraSpawners-0.1.5.jar
 ```
 
 GitHub Actions runs unit tests, compiles against Paper 1.21.11 and uploads the built JAR as the `MiraSpawners` artifact.
