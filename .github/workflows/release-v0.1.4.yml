@@ -1,0 +1,44 @@
+name: Release v0.1.4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-v0.1.4.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tested source
+        uses: actions/checkout@v4
+        with:
+          ref: c0781384ded0d1eb25746872b436ad4669fbb8cd
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10'
+
+      - name: Test and build
+        run: gradle clean test build --stacktrace
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.1.4 \
+            build/libs/MiraSpawners-0.1.4.jar \
+            --target c0781384ded0d1eb25746872b436ad4669fbb8cd \
+            --title "MiraSpawners v0.1.4" \
+            --notes "Hostile mob spawning is now spawner-only. Non-spawner Monster spawns are blocked and already-loaded non-spawner hostile mobs are removed on chunk load. Bat and Stray are fully disabled across natural spawning, spawners, commands, eggs and plugin spawning. Stack replacement mobs preserve SPAWNER origin so normal MiraSpawners stacks continue working. Disabled Bat and Stray spawners are also blocked from admin creation and placement."
