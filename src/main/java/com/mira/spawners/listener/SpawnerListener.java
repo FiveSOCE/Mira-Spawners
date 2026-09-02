@@ -77,6 +77,12 @@ public final class SpawnerListener implements Listener {
             return;
         }
 
+        if (plugin.mobSpawnPolicy().isFullyBlocked(existingType)) {
+            event.setCancelled(true);
+            core.messages().send(player, "&cThat mob type is disabled by MiraSpawners.");
+            return;
+        }
+
         int current = data.stackSize(spawner);
         int incoming = items.totalUnits(held);
         StackMath.Transfer transfer = StackMath.transfer(current, incoming, plugin.maxSpawnerStack());
@@ -94,7 +100,7 @@ public final class SpawnerListener implements Listener {
                 + " Spawner Stack: &a" + data.stackSize(spawner) + "/" + plugin.maxSpawnerStack());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSpawnerPlace(BlockPlaceEvent event) {
         if (event.getBlockPlaced().getType() != Material.SPAWNER
                 || !(event.getBlockPlaced().getState() instanceof CreatureSpawner spawner)) {
@@ -103,6 +109,13 @@ public final class SpawnerListener implements Listener {
 
         ItemStack placedItem = event.getItemInHand();
         EntityType type = items.type(placedItem).orElse(spawner.getSpawnedType());
+        if (type != null && plugin.mobSpawnPolicy().isFullyBlocked(type)) {
+            event.setCancelled(true);
+            core.messages().send(event.getPlayer(), "&c" + SpawnerItemService.prettyName(type)
+                    + " spawners are disabled by MiraSpawners.");
+            return;
+        }
+
         if (type != null) {
             spawner.setSpawnedType(type);
         }
@@ -113,6 +126,15 @@ public final class SpawnerListener implements Listener {
     public void onSpawnerBreak(BlockBreakEvent event) {
         if (event.getBlock().getType() != Material.SPAWNER
                 || !(event.getBlock().getState() instanceof CreatureSpawner spawner)) {
+            return;
+        }
+
+        EntityType type = spawner.getSpawnedType();
+        if (type != null && plugin.mobSpawnPolicy().isFullyBlocked(type)) {
+            event.setDropItems(false);
+            event.setExpToDrop(0);
+            core.messages().send(event.getPlayer(), "&7Removed disabled "
+                    + SpawnerItemService.prettyName(type) + " spawner without a drop.");
             return;
         }
 
@@ -134,7 +156,6 @@ public final class SpawnerListener implements Listener {
             return;
         }
 
-        EntityType type = spawner.getSpawnedType();
         if (type == null) {
             return;
         }
@@ -158,6 +179,10 @@ public final class SpawnerListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSpawnerSpawn(SpawnerSpawnEvent event) {
+        if (plugin.mobSpawnPolicy().isFullyBlocked(event.getEntityType())) {
+            event.setCancelled(true);
+            return;
+        }
         mobs.handleSpawnerSpawn(event);
     }
 
