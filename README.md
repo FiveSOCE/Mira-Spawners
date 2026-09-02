@@ -4,11 +4,11 @@ MiraSpawners is the spawner and mob-farming layer for the Mira Minecraft plugin 
 
 ## Download
 
-[**Download MiraSpawners v0.1.5**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.5/MiraSpawners-0.1.5.jar)
+[**Download MiraSpawners v0.1.6**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.6/MiraSpawners-0.1.6.jar)
 
 [View the latest GitHub release](https://github.com/FiveSOCE/Mira-Spawners/releases/latest)
 
-Current release: **v0.1.5**
+Current release: **v0.1.6**
 
 ## Requirements
 
@@ -80,9 +80,14 @@ Left-click a spawner to receive a chat message such as:
 
 ## Hostile mob spawn policy
 
-Hostile mobs are allowed only when they originate from a **Mira-managed/player-placed spawner**. Darkness spawns, patrols, reinforcements, portals, commands/plugins, natural hostile vanilla spawners and other unmanaged hostile spawn paths are rejected.
+Natural and unmanaged hostile spawning is blocked while intentional special/event spawns are allowed.
 
-Existing unmanaged hostile mobs are cleaned when encountered or loaded. `BAT` and `STRAY` are fully blocked and cannot survive as MiraSpawner mobs either.
+- Hostile mobs from Mira-managed/player-placed spawners are allowed.
+- Hostile mobs spawned with Bukkit/Paper `CUSTOM` spawn reason are allowed. This covers deliberate spawns created by plugins such as MiraPinata.
+- Hostile mobs spawned with `COMMAND` spawn reason are allowed. This covers `/summon` and command-driven special spawns.
+- Intentional `CUSTOM` and `COMMAND` entities are marked with persistent MiraSpawners policy-exemption data so they are not removed later when their chunk unloads and reloads.
+- Darkness spawns, patrols, reinforcements, portals, natural hostile vanilla spawners and other unmanaged hostile spawn paths remain blocked.
+- `BAT` and `STRAY` remain fully blocked for normal/unmanaged spawning, but an explicit `CUSTOM` or `COMMAND` special spawn is intentionally exempt from MiraSpawners policy.
 
 MiraSpawners-managed mobs are marked with provenance data so their later stack replacement/death flow remains valid without reopening natural hostile spawning.
 
@@ -266,6 +271,7 @@ That API call returns an ItemStack containing 64 actual Zombie Spawner item unit
 - ItemStack amount represents the real number of spawners in the inventory stack.
 - Legacy compact spawner items are still understood when consumed or placed so existing items do not silently lose their stored count.
 - Mob stack size is stored on the entity PDC and survives normal chunk unload/load cycles.
+- Intentional command/plugin spawns carry a persistent policy-exemption marker so chunk-load cleanup does not remove them.
 - Spawner block stacks are capped at 64.
 - Mob stacks are capped independently, defaulting to 1000.
 - Only matching mob types can merge.
@@ -282,7 +288,7 @@ The Gradle build automatically downloads the pinned MiraCore 0.1.0 release JAR a
 The built plugin is produced at:
 
 ```text
-build/libs/MiraSpawners-0.1.5.jar
+build/libs/MiraSpawners-0.1.6.jar
 ```
 
 GitHub Actions runs unit tests, compiles against Paper 1.21.11 and uploads the built JAR as the `MiraSpawners` artifact.
