@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.mira"
-version = "0.1.6"
+version = "0.1.7"
 
 repositories {
     mavenCentral()
@@ -24,9 +24,7 @@ val downloadMiraCore by tasks.registering {
             return digest.digest(file.readBytes()).joinToString("") { byte -> "%02x".format(byte) }
         }
 
-        if (miraCoreJar.exists() && sha256(miraCoreJar) == miraCoreSha256) {
-            return@doLast
-        }
+        if (miraCoreJar.exists() && sha256(miraCoreJar) == miraCoreSha256) return@doLast
 
         miraCoreJar.parentFile.mkdirs()
         val url = "https://github.com/FiveSOCE/MIra-core/releases/download/v$miraCoreVersion/MiraCore-$miraCoreVersion.jar"
@@ -34,16 +32,13 @@ val downloadMiraCore by tasks.registering {
             miraCoreJar.outputStream().use { output -> input.copyTo(output) }
         }
 
-        check(sha256(miraCoreJar) == miraCoreSha256) {
-            "Downloaded MiraCore JAR failed SHA-256 verification"
-        }
+        check(sha256(miraCoreJar) == miraCoreSha256) { "Downloaded MiraCore JAR failed SHA-256 verification" }
     }
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly(files(miraCoreJar))
-
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
@@ -58,6 +53,4 @@ tasks.withType<JavaCompile>().configureEach {
     options.release.set(21)
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
+tasks.test { useJUnitPlatform() }
