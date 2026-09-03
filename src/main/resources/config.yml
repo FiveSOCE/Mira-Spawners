@@ -3,6 +3,12 @@ spawners:
   silk-touch-required: true
   natural-spawners-harvestable: true
   protect-from-explosions: true
+  split-gui:
+    enabled: true
+
+analytics:
+  # Estimated target production used by /mspawners stats efficiency percentages.
+  target-units-per-hour-per-spawner: 144.0
 
 mobs:
   max-stack-size: 1000
