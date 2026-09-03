@@ -16,6 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 
@@ -42,7 +43,7 @@ public final class SpawnerSplitGui implements Listener {
             return true;
         }
         Inventory inv = Bukkit.createInventory(new Holder(block.getWorld().getName(), block.getX(), block.getY(), block.getZ()), 27,
-                plugin.core().messages().deserialize("&5Split " + SpawnerItemService.prettyName(type) + " Spawner"));
+                plugin.core().messages().parse("&5Split " + SpawnerItemService.prettyName(type) + " Spawner"));
         int[] amounts = {1, 8, 16, 32};
         int[] slots = {10, 11, 12, 13};
         for (int i = 0; i < amounts.length; i++) inv.setItem(slots[i], button(Material.SPAWNER, "&dTake " + amounts[i], amounts[i]));
@@ -59,8 +60,8 @@ public final class SpawnerSplitGui implements Listener {
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player) || event.getClickedInventory() != event.getInventory()) return;
         ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || clicked.getType().isAir() || !clicked.hasItemMeta() || clicked.getItemMeta().getPersistentDataContainer().has(plugin.splitAmountKey()) == false) return;
-        Integer requested = clicked.getItemMeta().getPersistentDataContainer().get(plugin.splitAmountKey(), org.bukkit.persistence.PersistentDataType.INTEGER);
+        if (clicked == null || clicked.getType().isAir() || !clicked.hasItemMeta()) return;
+        Integer requested = clicked.getItemMeta().getPersistentDataContainer().get(plugin.splitAmountKey(), PersistentDataType.INTEGER);
         if (requested == null || requested <= 0) return;
         var world = Bukkit.getWorld(holder.world());
         if (world == null) { player.closeInventory(); return; }
@@ -78,15 +79,15 @@ public final class SpawnerSplitGui implements Listener {
 
     private ItemStack button(Material material, String name, int amount) {
         ItemStack item = info(material, name, List.of("&7Click to remove these spawners", "&7from the placed stack."));
-        item.editMeta(meta -> meta.getPersistentDataContainer().set(plugin.splitAmountKey(), org.bukkit.persistence.PersistentDataType.INTEGER, amount));
+        item.editMeta(meta -> meta.getPersistentDataContainer().set(plugin.splitAmountKey(), PersistentDataType.INTEGER, amount));
         return item;
     }
 
     private ItemStack info(Material material, String name, List<String> lore) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(plugin.core().messages().deserialize(name));
-        meta.lore(lore.stream().map(plugin.core().messages()::deserialize).toList());
+        meta.displayName(plugin.core().messages().parse(name));
+        meta.lore(lore.stream().map(plugin.core().messages()::parse).toList());
         item.setItemMeta(meta);
         return item;
     }
