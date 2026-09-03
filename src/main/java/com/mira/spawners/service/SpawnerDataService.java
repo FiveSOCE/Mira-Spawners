@@ -1,11 +1,14 @@
 package com.mira.spawners.service;
 
 import com.mira.spawners.MiraSpawnersPlugin;
+import com.mira.spawners.api.event.SpawnerStackChangeEvent;
 import com.mira.spawners.util.StackMath;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.UUID;
 
 public final class SpawnerDataService {
     private final MiraSpawnersPlugin plugin;
@@ -29,14 +32,28 @@ public final class SpawnerDataService {
     }
 
     public void setStackSize(CreatureSpawner spawner, int stackSize) {
-        write(spawner, stackSize, true);
+        setStackSize(spawner, stackSize, null);
+    }
+
+    public void setStackSize(CreatureSpawner spawner, int stackSize, UUID actor) {
+        write(spawner, stackSize, true, SpawnerStackChangeEvent.Cause.STACK, actor);
     }
 
     public void write(CreatureSpawner spawner, int stackSize, boolean managed) {
+        write(spawner, stackSize, managed, SpawnerStackChangeEvent.Cause.API, null);
+    }
+
+    public void write(CreatureSpawner spawner, int stackSize, boolean managed, SpawnerStackChangeEvent.Cause cause, UUID actor) {
+        int oldAmount = stackSize(spawner);
+        int newAmount = StackMath.clamp(stackSize, 1, plugin.maxSpawnerStack());
+        var type = spawner.getSpawnedType();
         PersistentDataContainer pdc = spawner.getPersistentDataContainer();
-        pdc.set(stackSizeKey, PersistentDataType.INTEGER,
-                StackMath.clamp(stackSize, 1, plugin.maxSpawnerStack()));
+        pdc.set(stackSizeKey, PersistentDataType.INTEGER, newAmount);
         pdc.set(managedKey, PersistentDataType.BYTE, managed ? (byte) 1 : (byte) 0);
         spawner.update(true, false);
+        if (oldAmount != newAmount && type != null) {
+            plugin.getServer().getPluginManager().callEvent(new SpawnerStackChangeEvent(
+                    spawner.getLocation(), type, oldAmount, newAmount, cause, actor));
+        }
     }
 }
