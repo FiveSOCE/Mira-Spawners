@@ -107,9 +107,9 @@ public final class SpawnerListener implements Listener {
         if (type != null) spawner.setSpawnedType(type);
         int amount = items.unitsPerPhysicalItem(placedItem);
         data.write(spawner, amount, true, SpawnerStackChangeEvent.Cause.PLACE, event.getPlayer().getUniqueId());
-        if (type != null && amount == 1) {
+        if (type != null) {
             plugin.getServer().getPluginManager().callEvent(new SpawnerStackChangeEvent(
-                    spawner.getLocation(), type, 0, 1, SpawnerStackChangeEvent.Cause.PLACE, event.getPlayer().getUniqueId()));
+                    spawner.getLocation(), type, 0, amount, SpawnerStackChangeEvent.Cause.PLACE, event.getPlayer().getUniqueId()));
         }
     }
 
