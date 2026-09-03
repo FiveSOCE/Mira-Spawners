@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.mira"
-version = "0.1.7"
+version = "0.1.8"
 
 repositories {
     mavenCentral()
@@ -23,15 +23,10 @@ val downloadMiraCore by tasks.registering {
             val digest = MessageDigest.getInstance("SHA-256")
             return digest.digest(file.readBytes()).joinToString("") { byte -> "%02x".format(byte) }
         }
-
         if (miraCoreJar.exists() && sha256(miraCoreJar) == miraCoreSha256) return@doLast
-
         miraCoreJar.parentFile.mkdirs()
         val url = "https://github.com/FiveSOCE/MIra-core/releases/download/v$miraCoreVersion/MiraCore-$miraCoreVersion.jar"
-        URI(url).toURL().openStream().use { input ->
-            miraCoreJar.outputStream().use { output -> input.copyTo(output) }
-        }
-
+        URI(url).toURL().openStream().use { input -> miraCoreJar.outputStream().use { output -> input.copyTo(output) } }
         check(sha256(miraCoreJar) == miraCoreSha256) { "Downloaded MiraCore JAR failed SHA-256 verification" }
     }
 }
@@ -43,9 +38,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-}
+java { toolchain.languageVersion.set(JavaLanguageVersion.of(21)) }
 
 tasks.withType<JavaCompile>().configureEach {
     dependsOn(downloadMiraCore)
