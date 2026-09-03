@@ -51,7 +51,9 @@ public final class SpawnerDataService {
         pdc.set(stackSizeKey, PersistentDataType.INTEGER, newAmount);
         pdc.set(managedKey, PersistentDataType.BYTE, managed ? (byte) 1 : (byte) 0);
         spawner.update(true, false);
-        if (oldAmount != newAmount && type != null) {
+        // Placement is emitted explicitly by the placement listener as 0 -> full placed stack.
+        // This avoids reporting a newly-created block's implicit Bukkit size of 1 as real pre-existing value.
+        if (cause != SpawnerStackChangeEvent.Cause.PLACE && oldAmount != newAmount && type != null) {
             plugin.getServer().getPluginManager().callEvent(new SpawnerStackChangeEvent(
                     spawner.getLocation(), type, oldAmount, newAmount, cause, actor));
         }
