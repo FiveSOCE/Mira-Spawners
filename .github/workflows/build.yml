@@ -7,6 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,6 +35,19 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: MiraSpawners
-          path: build/libs/MiraSpawners-*.jar
+          name: MiraSpawners-0.1.9
+          path: build/libs/MiraSpawners-0.1.9.jar
           if-no-files-found: error
+
+      - name: Publish v0.1.9 release if missing
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view v0.1.9 >/dev/null 2>&1; then
+            gh release create v0.1.9 \
+              build/libs/MiraSpawners-0.1.9.jar \
+              --target "${{ github.sha }}" \
+              --title "MiraSpawners v0.1.9" \
+              --notes "Moves MiraSpawners to MiraCore 0.2.0, fixes runtime version metadata, adds multiplier-aware spawner production using MiraBoosters/MiraOutposts spawner_rate channels, and expands incremental faction/server production analytics."
+          fi
