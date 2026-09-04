@@ -3,6 +3,7 @@ package com.mira.spawners;
 import com.mira.spawners.api.MiraSpawnersApi;
 import com.mira.spawners.service.MobStackService;
 import com.mira.spawners.service.SpawnerItemService;
+import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -37,4 +38,20 @@ final class MiraSpawnersApiImpl implements MiraSpawnersApi {
     public boolean isManagedMob(LivingEntity entity) {
         return mobs.isManaged(entity);
     }
+
+    @Override
+    public double effectiveSpawnerRateMultiplier(Location location) {
+        return plugin.multipliers().effective(location);
+    }
+
+    @Override
+    public double serverUnitsPerHour() {
+        return plugin.analytics().serverUnitsPerHour();
+    }
+
+    @Override
+    public double factionUnitsPerHour(String factionName) {
+        return plugin.analytics().factionStats(factionName).unitsPerHour();
+    }
 }
+
