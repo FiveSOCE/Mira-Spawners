@@ -55,11 +55,14 @@ public final class SpawnerFeatureCommandListener implements Listener {
     private void showStats(Player player) {
         var top = analytics.top(10);
         plugin.core().messages().send(player, "&dSpawner Efficiency Stats &7(top 10 by produced units)");
+        plugin.core().messages().send(player, "&7Estimated server production: &a" + String.format(Locale.US, "%,.1f", analytics.serverUnitsPerHour()) + " units/hour");
         if (top.isEmpty()) plugin.core().messages().send(player, "&7No tracked spawner production yet.");
         int rank = 1;
         for (var stat : top) {
             plugin.core().messages().send(player, "&d#" + rank++ + " &f" + SpawnerItemService.prettyName(stat.type()) + " x" + stat.stackSize()
-                    + " &7| produced &a" + stat.unitsProduced() + " &7| efficiency &f" + String.format(Locale.US, "%.1f%%", analytics.efficiency(stat))
+                    + " &7| produced &a" + stat.unitsProduced() + " &7| &a" + String.format(Locale.US, "%,.1f", analytics.productionPerHour(stat)) + "/h"
+                    + " &7| efficiency &f" + String.format(Locale.US, "%.1f%%", analytics.efficiency(stat))
+                    + " &7| rate x&f" + String.format(Locale.US, "%.2f", stat.lastRateMultiplier())
                     + " &8@ " + stat.location().getWorld().getName() + " " + stat.location().getBlockX() + "," + stat.location().getBlockY() + "," + stat.location().getBlockZ());
         }
     }
@@ -69,6 +72,7 @@ public final class SpawnerFeatureCommandListener implements Listener {
         plugin.core().messages().send(player, "&dFaction Spawner Analytics: &f" + faction);
         plugin.core().messages().send(player, "&7Spawner blocks: &f" + stats.spawnerBlocks() + " &7Physical spawners: &f" + stats.physicalSpawners());
         plugin.core().messages().send(player, "&7Spawn events: &f" + stats.spawnEvents() + " &7Produced units: &a" + stats.unitsProduced());
+        plugin.core().messages().send(player, "&7Estimated production: &a" + String.format(Locale.US, "%,.1f", stats.unitsPerHour()) + " units/hour");
         if (!stats.types().isEmpty()) plugin.core().messages().send(player, "&7Types: &f" + stats.types());
     }
 
