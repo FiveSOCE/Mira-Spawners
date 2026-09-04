@@ -36,6 +36,8 @@ public final class SpawnerAnalyticsService {
         yaml.set(base + ".z", spawner.getZ());
         yaml.set(base + ".type", spawner.getSpawnedType().name());
         yaml.set(base + ".stack-size", plugin.spawnerData().stackSize(spawner));
+        yaml.set(base + ".faction", territoryFaction(spawner.getLocation()));
+        yaml.set(base + ".last-rate-multiplier", rateMultiplier(spawner.getLocation()));
         yaml.set(base + ".spawn-events", yaml.getLong(base + ".spawn-events", 0L) + 1L);
         yaml.set(base + ".units-produced", yaml.getLong(base + ".units-produced", 0L) + Math.max(1, producedUnits));
         save();
@@ -55,6 +57,8 @@ public final class SpawnerAnalyticsService {
             yaml.set(base + ".z", location.getBlockZ());
             yaml.set(base + ".type", type.name());
             yaml.set(base + ".stack-size", newAmount);
+            yaml.set(base + ".faction", territoryFaction(location));
+            yaml.set(base + ".last-rate-multiplier", rateMultiplier(location));
             yaml.set(base + ".removed-at", null);
         }
         save();
@@ -69,17 +73,31 @@ public final class SpawnerAnalyticsService {
     public synchronized FactionStats factionStats(String factionName) {
         long units = 0, events = 0;
         int physical = 0, blocks = 0;
+        double unitsPerHour = 0D;
         Map<EntityType,Integer> types = new EnumMap<>(EntityType.class);
         for (SpawnerStat stat : allActive()) {
-            String owner = territoryFaction(stat.location());
+            String owner = stat.faction();
+            if (owner == null || owner.isBlank()) owner = territoryFaction(stat.location());
             if (owner == null || !owner.equalsIgnoreCase(factionName)) continue;
             units += stat.unitsProduced();
             events += stat.spawnEvents();
             physical += stat.stackSize();
             blocks++;
+            unitsPerHour += productionPerHour(stat);
             types.merge(stat.type(), stat.stackSize(), Integer::sum);
         }
-        return new FactionStats(factionName, blocks, physical, events, units, Map.copyOf(types));
+        return new FactionStats(factionName, blocks, physical, events, units, unitsPerHour, Map.copyOf(types));
+    }
+
+    public synchronized double serverUnitsPerHour() {
+        return allActive().stream().mapToDouble(this::productionPerHour).sum();
+    }
+
+    public double productionPerHour(SpawnerStat stat) {
+        if (stat == null || stat.firstSeen() <= 0L) return 0D;
+        long until = stat.lastSeen() <= stat.firstSeen() ? System.currentTimeMillis() : stat.lastSeen();
+        double hours = Math.max(1D / 60D, (until - stat.firstSeen()) / 3_600_000D);
+        return stat.unitsProduced() / hours;
     }
 
     public double efficiency(SpawnerStat stat) {
@@ -89,6 +107,10 @@ public final class SpawnerAnalyticsService {
         double target = Math.max(1D, plugin.getConfig().getDouble("analytics.target-units-per-hour-per-spawner", 144D));
         double expected = target * hours * stat.stackSize();
         return expected <= 0 ? 0D : (stat.unitsProduced() / expected) * 100D;
+    }
+
+    public double rateMultiplier(Location location) {
+        return plugin.multipliers() == null ? 1.0D : plugin.multipliers().effective(location);
     }
 
     private List<SpawnerStat> allActive() {
@@ -105,7 +127,11 @@ public final class SpawnerAnalyticsService {
                 if (world == null) continue;
                 EntityType type = EntityType.valueOf(yaml.getString(base + ".type", "PIG"));
                 Location loc = new Location(world, yaml.getInt(base + ".x"), yaml.getInt(base + ".y"), yaml.getInt(base + ".z"));
-                out.add(new SpawnerStat(loc, type, stack, yaml.getLong(base + ".spawn-events", 0L), yaml.getLong(base + ".units-produced", 0L), yaml.getLong(base + ".first-seen", 0L), yaml.getLong(base + ".last-seen", 0L)));
+                String faction = yaml.getString(base + ".faction", "");
+                out.add(new SpawnerStat(loc, type, stack, yaml.getLong(base + ".spawn-events", 0L),
+                        yaml.getLong(base + ".units-produced", 0L), yaml.getLong(base + ".first-seen", 0L),
+                        yaml.getLong(base + ".last-seen", 0L), faction,
+                        yaml.getDouble(base + ".last-rate-multiplier", 1.0D)));
             } catch (Exception ignored) { }
         }
         return out;
@@ -127,11 +153,15 @@ public final class SpawnerAnalyticsService {
     private String key(Location location) {
         return location.getWorld().getUID() + ";" + location.getBlockX() + ";" + location.getBlockY() + ";" + location.getBlockZ();
     }
+
     private void save() {
         try { yaml.save(file); }
         catch (Exception ex) { plugin.getLogger().warning("Could not save spawner-analytics.yml: " + ex.getMessage()); }
     }
 
-    public record SpawnerStat(Location location, EntityType type, int stackSize, long spawnEvents, long unitsProduced, long firstSeen, long lastSeen) {}
-    public record FactionStats(String faction, int spawnerBlocks, int physicalSpawners, long spawnEvents, long unitsProduced, Map<EntityType,Integer> types) {}
+    public record SpawnerStat(Location location, EntityType type, int stackSize, long spawnEvents, long unitsProduced,
+                              long firstSeen, long lastSeen, String faction, double lastRateMultiplier) {}
+
+    public record FactionStats(String faction, int spawnerBlocks, int physicalSpawners, long spawnEvents,
+                               long unitsProduced, double unitsPerHour, Map<EntityType,Integer> types) {}
 }
