@@ -21,6 +21,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
     private MobStackService mobStacks;
     private MobSpawnPolicyService mobSpawnPolicy;
     private SpawnerAnalyticsService analytics;
+    private SpawnerMultiplierService multipliers;
     private MiraSpawnersApi api;
     private NamespacedKey splitAmountKey;
 
@@ -31,6 +32,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         core = MiraCoreProvider.require();
         spawnerData = new SpawnerDataService(this);
         spawnerItems = new SpawnerItemService(this);
+        multipliers = new SpawnerMultiplierService();
         mobStacks = new MobStackService(this, spawnerData);
         mobSpawnPolicy = new MobSpawnPolicyService(this, mobStacks);
         analytics = new SpawnerAnalyticsService(this);
@@ -56,7 +58,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         pluginCommand.setExecutor(command);
         pluginCommand.setTabCompleter(command);
 
-        core.modules().setHealth(this, ModuleHealth.HEALTHY, "Spawner stacking, mob stacking, efficiency analytics and faction analytics ready");
+        core.modules().setHealth(this, ModuleHealth.HEALTHY, "Spawner stacking, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
         getLogger().info("MiraSpawners v" + getPluginMeta().getVersion() + " enabled.");
     }
 
@@ -74,6 +76,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
     public MobStackService mobStacks() { return mobStacks; }
     public MobSpawnPolicyService mobSpawnPolicy() { return mobSpawnPolicy; }
     public SpawnerAnalyticsService analytics() { return analytics; }
+    public SpawnerMultiplierService multipliers() { return multipliers; }
     public NamespacedKey splitAmountKey() { return splitAmountKey; }
 
     public int maxSpawnerStack() { return Math.max(1, Math.min(HARD_MAX_SPAWNER_STACK, getConfig().getInt("spawners.max-stack-size", HARD_MAX_SPAWNER_STACK))); }
