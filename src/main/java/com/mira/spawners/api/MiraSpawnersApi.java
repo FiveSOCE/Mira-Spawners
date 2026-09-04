@@ -1,5 +1,6 @@
 package com.mira.spawners.api;
 
+import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -12,4 +13,11 @@ public interface MiraSpawnersApi {
     int mobStackSize(LivingEntity entity);
 
     boolean isManagedMob(LivingEntity entity);
+
+    double effectiveSpawnerRateMultiplier(Location location);
+
+    double serverUnitsPerHour();
+
+    double factionUnitsPerHour(String factionName);
 }
+
