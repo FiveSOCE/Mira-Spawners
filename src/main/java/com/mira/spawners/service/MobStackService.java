@@ -47,7 +47,9 @@ public final class MobStackService {
         }
 
         CreatureSpawner source = event.getSpawner();
-        int incomingCount = source == null ? 1 : spawnerData.stackSize(source);
+        int baseCount = source == null ? 1 : spawnerData.stackSize(source);
+        double multiplier = source == null ? 1.0D : plugin.multipliers().effective(source.getLocation());
+        int incomingCount = (int) Math.round(baseCount * multiplier);
         incomingCount = StackMath.clamp(incomingCount, 1, plugin.maxMobStack());
 
         LivingEntity target = findMergeTarget(incomingEntity);
