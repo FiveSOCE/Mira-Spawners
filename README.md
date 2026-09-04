@@ -4,14 +4,16 @@ MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper ser
 
 ## Download
 
-[**Download MiraSpawners v0.1.8**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.8/MiraSpawners-0.1.8.jar)
+[**Download MiraSpawners v0.1.9**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.9/MiraSpawners-0.1.9.jar)
 
 ## Requirements / Dependencies
 
 - Paper 1.21.11
 - Java 21
-- MiraCore 0.1.0 or newer
+- MiraCore 0.2.0 or newer
 - MiraFactions optional for faction-linked analytics
+- MiraBoosters optional for global `spawner_rate` multipliers
+- MiraOutposts optional for faction-owned `spawner_rate` multipliers
 
 ## How MiraSpawners Works
 
@@ -20,6 +22,8 @@ Spawner items carry hidden mob-type identity and can be harvested with Silk Touc
 The spawn-policy layer can block natural/unmanaged hostile spawning while allowing explicit spawner, custom or command-based spawn reasons, and individual mob types can be fully disabled. MiraSpawners also tracks produced units and efficiency, supports faction-linked spawner statistics, and exposes `SpawnerStackChangeEvent` plus a public API for other Mira systems.
 
 The optional split GUI lets an administrator split 1, 8, 16, 32, half, or all-but-one spawners from a placed stack while always leaving at least one spawner placed.
+
+v0.1.9 makes spawner output multiplier-aware. Global `spawner_rate` boosters and faction-owned outpost `spawner_rate` bonuses are combined at spawn time, while analytics cache faction ownership on stack/spawn updates and expose server-wide and per-faction units-per-hour estimates through commands and the public API.
 
 ## Commands
 
