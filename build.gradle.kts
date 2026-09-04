@@ -6,15 +6,15 @@ plugins {
 }
 
 group = "com.mira"
-version = "0.1.8"
+version = "0.1.9"
 
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
-val miraCoreVersion = "0.1.0"
-val miraCoreSha256 = "a96f1b4cd663666f7c82200b06ebf5d91751d2648a3d9bb3641e0e51bb730c9a"
+val miraCoreVersion = "0.2.0"
+val miraCoreSha256 = "66433a266a76088d2a2de90ac1beb1a5a183c26891ee8f394827b47830195b03"
 val miraCoreJar = layout.projectDirectory.file("libs/MiraCore-$miraCoreVersion.jar").asFile
 
 val downloadMiraCore by tasks.registering {
