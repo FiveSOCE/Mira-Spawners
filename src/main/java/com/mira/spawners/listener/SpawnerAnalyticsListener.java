@@ -21,7 +21,10 @@ public final class SpawnerAnalyticsListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSpawn(SpawnerSpawnEvent event) {
         CreatureSpawner source = event.getSpawner();
-        if (source != null) analytics.recordSpawn(source, data.stackSize(source));
+        if (source != null) {
+            int produced = (int) Math.round(data.stackSize(source) * analytics.rateMultiplier(source.getLocation()));
+            analytics.recordSpawn(source, Math.max(1, produced));
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
