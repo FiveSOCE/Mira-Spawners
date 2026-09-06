@@ -13,6 +13,9 @@ import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Ageable;
+import org.bukkit.entity.Chicken;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Zombie;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -163,25 +166,80 @@ public final class SpawnerListener implements Listener {
             return;
         }
 
-        // Player-placed / Mira-managed spawners must never create baby variants.
-        // Ageable covers animals/villagers; setBaby(false) reflection covers zombie/piglin-style APIs.
         if (event.getSpawner() != null && data.isManaged(event.getSpawner())) {
-            forceAdult(living);
+            // Farm-safety rule: managed spawners never allow baby mobs at all.
+            // Do not convert them. Reject/remove them outright so baby-only AI,
+            // hitboxes and jockey behavior can never reach a farm.
+            if (isBaby(living)) {
+                event.setCancelled(true);
+                living.remove();
+                return;
+            }
+
+            // Vanilla may attach jockey vehicle/passenger state after the initial
+            // spawn event. Validate one tick later and remove the entire invalid
+            // jockey combination if it appears.
+            plugin.getServer().getScheduler().runTask(plugin, () -> validateManagedSpawn(living));
         }
 
         mobs.handleSpawnerSpawn(event);
     }
 
-    private void forceAdult(LivingEntity entity) {
-        if (entity instanceof Ageable ageable) {
-            ageable.setAdult();
+    private void validateManagedSpawn(LivingEntity entity) {
+        if (entity == null || !entity.isValid()) return;
+
+        if (isBaby(entity)) {
+            removeJockeyPair(entity);
+            return;
         }
 
+        Entity vehicle = entity.getVehicle();
+        if (vehicle instanceof Chicken chicken && entity instanceof Zombie) {
+            entity.leaveVehicle();
+            chicken.remove();
+            entity.remove();
+            return;
+        }
+
+        if (entity instanceof Chicken chicken) {
+            for (Entity passenger : new java.util.ArrayList<>(chicken.getPassengers())) {
+                if (passenger instanceof Zombie zombie) {
+                    chicken.eject();
+                    zombie.remove();
+                    chicken.remove();
+                    return;
+                }
+            }
+        }
+    }
+
+    private void removeJockeyPair(LivingEntity entity) {
+        Entity vehicle = entity.getVehicle();
+        if (vehicle instanceof Chicken chicken) {
+            entity.leaveVehicle();
+            chicken.remove();
+        }
+
+        if (entity instanceof Chicken chicken) {
+            for (Entity passenger : new java.util.ArrayList<>(chicken.getPassengers())) {
+                if (passenger instanceof Zombie zombie) zombie.remove();
+            }
+            chicken.eject();
+        }
+
+        entity.remove();
+    }
+
+    private boolean isBaby(LivingEntity entity) {
+        if (entity instanceof Zombie zombie) return zombie.isBaby();
+        if (entity instanceof Ageable ageable) return !ageable.isAdult();
+
         try {
-            var method = entity.getClass().getMethod("setBaby", boolean.class);
-            method.invoke(entity, false);
+            var method = entity.getClass().getMethod("isBaby");
+            Object value = method.invoke(entity);
+            return value instanceof Boolean bool && bool;
         } catch (ReflectiveOperationException ignored) {
-            // Not every living entity has a baby/adult toggle.
+            return false;
         }
     }
 
