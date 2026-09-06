@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.mira"
-version = "0.1.9"
+version = "0.1.10"
 
 repositories {
     mavenCentral()
