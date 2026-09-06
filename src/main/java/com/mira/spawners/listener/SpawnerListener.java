@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -161,7 +162,27 @@ public final class SpawnerListener implements Listener {
             event.setCancelled(true);
             return;
         }
+
+        // Player-placed / Mira-managed spawners must never create baby variants.
+        // Ageable covers animals/villagers; setBaby(false) reflection covers zombie/piglin-style APIs.
+        if (event.getSpawner() != null && data.isManaged(event.getSpawner())) {
+            forceAdult(living);
+        }
+
         mobs.handleSpawnerSpawn(event);
+    }
+
+    private void forceAdult(LivingEntity entity) {
+        if (entity instanceof Ageable ageable) {
+            ageable.setAdult();
+        }
+
+        try {
+            var method = entity.getClass().getMethod("setBaby", boolean.class);
+            method.invoke(entity, false);
+        } catch (ReflectiveOperationException ignored) {
+            // Not every living entity has a baby/adult toggle.
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
