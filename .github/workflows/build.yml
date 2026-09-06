@@ -37,19 +37,19 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: MiraSpawners-0.1.10
-          path: build/libs/MiraSpawners-0.1.10.jar
+          name: MiraSpawners-0.1.11
+          path: build/libs/MiraSpawners-0.1.11.jar
           if-no-files-found: error
 
-      - name: Publish v0.1.10 release if missing
+      - name: Publish v0.1.11 release if missing
         if: success() && startsWith(github.ref, 'refs/heads/release/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view v0.1.10 >/dev/null 2>&1; then
-            gh release create v0.1.10 \
-              build/libs/MiraSpawners-0.1.10.jar \
+          if ! gh release view v0.1.11 >/dev/null 2>&1; then
+            gh release create v0.1.11 \
+              build/libs/MiraSpawners-0.1.11.jar \
               --target "${{ github.sha }}" \
-              --title "MiraSpawners v0.1.10" \
-              --notes "Ensures every mob spawned by a Mira-managed/player-placed spawner is forced to its adult form, preventing baby zombies and other baby variants while leaving natural/event spawns untouched."
+              --title "MiraSpawners v0.1.11" \
+              --notes "Managed/player-placed spawners now hard-reject baby mobs instead of converting them. Baby variants are cancelled and removed immediately, with a one-tick follow-up that removes any chicken-jockey pairing or delayed baby state outright to protect farms and prevent lag."
           fi
