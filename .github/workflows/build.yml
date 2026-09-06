@@ -2,7 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'release/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -35,19 +37,19 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: MiraSpawners-0.1.9
-          path: build/libs/MiraSpawners-0.1.9.jar
+          name: MiraSpawners-0.1.10
+          path: build/libs/MiraSpawners-0.1.10.jar
           if-no-files-found: error
 
-      - name: Publish v0.1.9 release if missing
+      - name: Publish v0.1.10 release if missing
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view v0.1.9 >/dev/null 2>&1; then
-            gh release create v0.1.9 \
-              build/libs/MiraSpawners-0.1.9.jar \
+          if ! gh release view v0.1.10 >/dev/null 2>&1; then
+            gh release create v0.1.10 \
+              build/libs/MiraSpawners-0.1.10.jar \
               --target "${{ github.sha }}" \
-              --title "MiraSpawners v0.1.9" \
-              --notes "Moves MiraSpawners to MiraCore 0.2.0, fixes runtime version metadata, adds multiplier-aware spawner production using MiraBoosters/MiraOutposts spawner_rate channels, and expands incremental faction/server production analytics."
+              --title "MiraSpawners v0.1.10" \
+              --notes "Ensures every mob spawned by a Mira-managed/player-placed spawner is forced to its adult form, preventing baby zombies and other baby variants while leaving natural/event spawns untouched."
           fi
