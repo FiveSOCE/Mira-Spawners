@@ -1,10 +1,14 @@
+## v0.1.10 adult-only managed spawns
+
+Mira-managed/player-placed spawners force spawned mobs into their adult form. This prevents baby zombies and other baby-capable variants from managed spawners without changing natural, command, or event spawns.
+
 # MiraSpawners
 
 MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper server suite. It provides typed Silk Touch spawners, placed spawner stacks, mob stacking, spawn-policy controls and spawner efficiency/faction analytics.
 
 ## Download
 
-[**Download MiraSpawners v0.1.9**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.9/MiraSpawners-0.1.9.jar)
+[**Download MiraSpawners v0.1.10**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.10/MiraSpawners-0.1.10.jar)
 
 ## Requirements / Dependencies
 
@@ -23,7 +27,7 @@ The spawn-policy layer can block natural/unmanaged hostile spawning while allowi
 
 The optional split GUI lets an administrator split 1, 8, 16, 32, half, or all-but-one spawners from a placed stack while always leaving at least one spawner placed.
 
-v0.1.9 makes spawner output multiplier-aware. Global `spawner_rate` boosters and faction-owned outpost `spawner_rate` bonuses are combined at spawn time, while analytics cache faction ownership on stack/spawn updates and expose server-wide and per-faction units-per-hour estimates through commands and the public API.
+v0.1.10 makes spawner output multiplier-aware. Global `spawner_rate` boosters and faction-owned outpost `spawner_rate` bonuses are combined at spawn time, while analytics cache faction ownership on stack/spawn updates and expose server-wide and per-faction units-per-hour estimates through commands and the public API.
 
 ## Commands
 
