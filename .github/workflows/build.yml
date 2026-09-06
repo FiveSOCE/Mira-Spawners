@@ -42,7 +42,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish v0.1.10 release if missing
-        if: github.event_name != 'pull_request'
+        if: success() && startsWith(github.ref, 'refs/heads/release/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
