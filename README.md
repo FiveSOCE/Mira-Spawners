@@ -1,3 +1,15 @@
+## v0.1.12 hard spawn blocks
+
+MiraSpawners now treats a configured `fully-blocked-types` entry as a genuine hard block. The check runs before the CUSTOM/COMMAND exemption, so a fully blocked mob cannot be reintroduced by a command or another plugin.
+
+Current default hard blocks include:
+
+- Bat
+- Stray
+- **Phantom**
+
+Baby Zombies are also rejected as a forbidden variant regardless of spawn source. This blocks baby zombies from Mira-managed spawners and the general world, which in turn prevents chicken-jockey Zombie riders from existing. Loaded forbidden entities are removed during the existing chunk-load policy sweep.
+
 ## v0.1.10 adult-only managed spawns
 
 Mira-managed/player-placed spawners force spawned mobs into their adult form. This prevents baby zombies and other baby-capable variants from managed spawners without changing natural, command, or event spawns.
@@ -8,7 +20,7 @@ MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper ser
 
 ## Download
 
-[**Download MiraSpawners v0.1.10**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.10/MiraSpawners-0.1.10.jar)
+[**Download MiraSpawners v0.1.12**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.12/MiraSpawners-0.1.12.jar)
 
 ## Requirements / Dependencies
 
@@ -27,7 +39,7 @@ The spawn-policy layer can block natural/unmanaged hostile spawning while allowi
 
 The optional split GUI lets an administrator split 1, 8, 16, 32, half, or all-but-one spawners from a placed stack while always leaving at least one spawner placed.
 
-v0.1.10 makes spawner output multiplier-aware. Global `spawner_rate` boosters and faction-owned outpost `spawner_rate` bonuses are combined at spawn time, while analytics cache faction ownership on stack/spawn updates and expose server-wide and per-faction units-per-hour estimates through commands and the public API.
+v0.1.12 makes spawner output multiplier-aware. Global `spawner_rate` boosters and faction-owned outpost `spawner_rate` bonuses are combined at spawn time, while analytics cache faction ownership on stack/spawn updates and expose server-wide and per-faction units-per-hour estimates through commands and the public API.
 
 ## Commands
 
