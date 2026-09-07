@@ -29,6 +29,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view v0.1.12 >/dev/null 2>&1; then
+          if gh release view v0.1.12 >/dev/null 2>&1; then
+            gh release upload v0.1.12 build/libs/MiraSpawners-0.1.12.jar --clobber
+          else
             gh release create v0.1.12 build/libs/MiraSpawners-0.1.12.jar --target "${{ github.sha }}" --title "MiraSpawners v0.1.12" --notes "Hard-blocks Phantoms and baby Zombies from all spawn sources, eliminating chicken jockey riders and enforcing fully-blocked mobs even for custom/command spawns."
           fi
