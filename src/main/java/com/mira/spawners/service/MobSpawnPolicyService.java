@@ -6,6 +6,7 @@ import org.bukkit.block.CreatureSpawner;
 import org.bukkit.entity.Enemy;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Zombie;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -64,14 +65,15 @@ public final class MobSpawnPolicyService {
     public boolean shouldCancelSpawn(LivingEntity entity, CreatureSpawnEvent.SpawnReason reason) {
         if (entity == null) return false;
 
-        // Explicit command and plugin-created entities are intentional special/event spawns.
-        // MiraSpawners must not interfere with them, even when their type is otherwise blocked.
+        // Hard blocks truly mean hard blocks: they apply to natural, spawner, egg,
+        // command and plugin-created spawns.
+        if (isFullyBlocked(entity.getType()) || isForbiddenVariant(entity)) return true;
+
+        // Other explicit command/plugin-created entities remain intentional special/event spawns.
         if (isIntentionalSpawn(reason)) {
             markPolicyExempt(entity);
             return false;
         }
-
-        if (isFullyBlocked(entity.getType())) return true;
         return blockNonSpawnerHostiles
                 && isHostile(entity)
                 && reason != CreatureSpawnEvent.SpawnReason.SPAWNER;
@@ -79,8 +81,8 @@ public final class MobSpawnPolicyService {
 
     public boolean shouldCancelSpawnerSpawn(LivingEntity entity, CreatureSpawner source) {
         if (entity == null) return false;
+        if (isFullyBlocked(entity.getType()) || isForbiddenVariant(entity)) return true;
         if (isPolicyExempt(entity)) return false;
-        if (isFullyBlocked(entity.getType())) return true;
         return blockNonSpawnerHostiles
                 && isHostile(entity)
                 && (source == null || !plugin.spawnerData().isManaged(source));
@@ -88,11 +90,15 @@ public final class MobSpawnPolicyService {
 
     public boolean shouldRemoveLoaded(LivingEntity entity) {
         if (entity == null) return false;
+        if (isFullyBlocked(entity.getType()) || isForbiddenVariant(entity)) return true;
         if (isPolicyExempt(entity)) return false;
-        if (isFullyBlocked(entity.getType())) return true;
         return blockNonSpawnerHostiles
                 && isHostile(entity)
                 && !mobStacks.isManaged(entity);
+    }
+
+    private boolean isForbiddenVariant(LivingEntity entity) {
+        return entity instanceof Zombie zombie && !zombie.isAdult();
     }
 
     private boolean isIntentionalSpawn(CreatureSpawnEvent.SpawnReason reason) {
