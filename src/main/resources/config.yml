@@ -26,3 +26,4 @@ mobs:
   fully-blocked-types:
     - BAT
     - STRAY
+    - PHANTOM
