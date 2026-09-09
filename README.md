@@ -1,3 +1,13 @@
+# MiraSpawners
+
+## Download
+
+**Latest compatibility release: v0.1.13**
+
+[**Download MiraSpawners-0.1.13.jar**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.13/MiraSpawners-0.1.13.jar)
+
+[View all releases](https://github.com/FiveSOCE/Mira-Spawners/releases)
+
 ## v0.1.12 hard spawn blocks
 
 MiraSpawners now treats a configured `fully-blocked-types` entry as a genuine hard block. The check runs before the CUSTOM/COMMAND exemption, so a fully blocked mob cannot be reintroduced by a command or another plugin.
@@ -17,10 +27,6 @@ Mira-managed/player-placed spawners force spawned mobs into their adult form. Th
 # MiraSpawners
 
 MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper server suite. It provides typed Silk Touch spawners, placed spawner stacks, mob stacking, spawn-policy controls and spawner efficiency/faction analytics.
-
-## Download
-
-[**Download MiraSpawners v0.1.12**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.13/MiraSpawners-0.1.13.jar)
 
 ## Requirements / Dependencies
 
