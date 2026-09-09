@@ -20,7 +20,7 @@ MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper ser
 
 ## Download
 
-[**Download MiraSpawners v0.1.12**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.12/MiraSpawners-0.1.12.jar)
+[**Download MiraSpawners v0.1.12**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.13/MiraSpawners-0.1.13.jar)
 
 ## Requirements / Dependencies
 
