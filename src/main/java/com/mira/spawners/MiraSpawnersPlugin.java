@@ -22,6 +22,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
     private MobSpawnPolicyService mobSpawnPolicy;
     private SpawnerAnalyticsService analytics;
     private SpawnerMultiplierService multipliers;
+    private SpawnerActivationService activation;
     private MiraSpawnersApi api;
     private NamespacedKey splitAmountKey;
 
@@ -36,6 +37,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         mobStacks = new MobStackService(this, spawnerData);
         mobSpawnPolicy = new MobSpawnPolicyService(this, mobStacks);
         analytics = new SpawnerAnalyticsService(this);
+        activation = new SpawnerActivationService(this, spawnerData);
         splitAmountKey = new NamespacedKey(this, "split_amount");
         api = new MiraSpawnersApiImpl(this, spawnerItems, mobStacks);
         SpawnerSplitGui splitGui = new SpawnerSplitGui(this, spawnerData, spawnerItems);
@@ -44,6 +46,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         core.services().register(MiraSpawnersApi.class, api);
 
         getServer().getPluginManager().registerEvents(new SpawnerListener(this, core, spawnerData, spawnerItems, mobStacks), this);
+        getServer().getPluginManager().registerEvents(new SpawnerActivationListener(this, activation), this);
         getServer().getPluginManager().registerEvents(new MobSpawnPolicyListener(mobSpawnPolicy), this);
         getServer().getPluginManager().registerEvents(new SpawnerAnalyticsListener(analytics, spawnerData), this);
         getServer().getPluginManager().registerEvents(splitGui, this);
@@ -58,7 +61,12 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         pluginCommand.setExecutor(command);
         pluginCommand.setTabCompleter(command);
 
-        core.modules().setHealth(this, ModuleHealth.HEALTHY, "Spawner stacking, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
+        // Normalize already-loaded managed spawners after enable. New chunks and
+        // placements are handled by SpawnerActivationListener.
+        getServer().getScheduler().runTask(this, activation::normalizeLoadedChunks);
+
+        core.modules().setHealth(this, ModuleHealth.HEALTHY,
+                "Spawner stacking, loaded-chunk activation, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
         getLogger().info("MiraSpawners v" + getPluginMeta().getVersion() + " enabled.");
     }
 
@@ -83,6 +91,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
     public boolean silkTouchRequired() { return getConfig().getBoolean("spawners.silk-touch-required", true); }
     public boolean naturalSpawnersHarvestable() { return getConfig().getBoolean("spawners.natural-spawners-harvestable", true); }
     public boolean protectSpawnersFromExplosions() { return getConfig().getBoolean("spawners.protect-from-explosions", true); }
+    public boolean activateManagedSpawnersInLoadedChunks() { return getConfig().getBoolean("spawners.activate-in-loaded-chunks", true); }
     public int maxMobStack() { return Math.max(1, getConfig().getInt("mobs.max-stack-size", 1000)); }
     public double mergeRadius() { return Math.max(0.5D, getConfig().getDouble("mobs.merge-radius", 6.0D)); }
     public boolean showMobStackName() { return getConfig().getBoolean("mobs.show-stack-name", true); }
@@ -91,5 +100,6 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
     public void reloadPluginConfiguration() {
         reloadConfig();
         if (mobSpawnPolicy != null) mobSpawnPolicy.reload();
+        if (activation != null) activation.normalizeLoadedChunks();
     }
 }
