@@ -48,6 +48,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnerListener(this, core, spawnerData, spawnerItems, mobStacks), this);
         getServer().getPluginManager().registerEvents(new SpawnerActivationListener(this, activation), this);
         getServer().getPluginManager().registerEvents(new MobSpawnPolicyListener(mobSpawnPolicy), this);
+        getServer().getPluginManager().registerEvents(new NamedMobDeathSilencerListener(mobStacks), this);
         // Registered after the global spawn policy so loader-driven spawns obey
         // the same restrictions before Mira stacking is applied.
         getServer().getPluginManager().registerEvents(new LoaderDrivenSpawnerListener(this), this);
