@@ -65,27 +65,28 @@ public final class MobSpawnPolicyService {
     public boolean shouldCancelSpawn(LivingEntity entity, CreatureSpawnEvent.SpawnReason reason) {
         if (entity == null) return false;
 
-        // Hard blocks truly mean hard blocks: they apply to natural, spawner, egg,
-        // command and plugin-created spawns.
         if (isFullyBlocked(entity.getType()) || isForbiddenVariant(entity)) return true;
 
-        // Other explicit command/plugin-created entities remain intentional special/event spawns.
         if (isIntentionalSpawn(reason)) {
             markPolicyExempt(entity);
             return false;
         }
-        return blockNonSpawnerHostiles
-                && isHostile(entity)
-                && reason != CreatureSpawnEvent.SpawnReason.SPAWNER;
+
+        // Physical and Mira-managed spawners are both valid mob sources.
+        if (reason == CreatureSpawnEvent.SpawnReason.SPAWNER) return false;
+
+        return blockNonSpawnerHostiles && isHostile(entity);
     }
 
     public boolean shouldCancelSpawnerSpawn(LivingEntity entity, CreatureSpawner source) {
         if (entity == null) return false;
         if (isFullyBlocked(entity.getType()) || isForbiddenVariant(entity)) return true;
         if (isPolicyExempt(entity)) return false;
-        return blockNonSpawnerHostiles
-                && isHostile(entity)
-                && (source == null || !plugin.spawnerData().isManaged(source));
+
+        // Any real physical spawner is an allowed source. Mira-managed spawners
+        // still receive their extra stacking/safety behavior elsewhere, but an
+        // unmanaged vanilla spawner must never be cancelled just for being vanilla.
+        return false;
     }
 
     public boolean shouldRemoveLoaded(LivingEntity entity) {
