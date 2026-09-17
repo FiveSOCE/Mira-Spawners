@@ -49,8 +49,6 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnerActivationListener(this, activation), this);
         getServer().getPluginManager().registerEvents(new MobSpawnPolicyListener(mobSpawnPolicy), this);
         getServer().getPluginManager().registerEvents(new NamedMobDeathSilencerListener(mobStacks), this);
-        // Registered after the global spawn policy so loader-driven spawns obey
-        // the same restrictions before Mira stacking is applied.
         getServer().getPluginManager().registerEvents(new LoaderDrivenSpawnerListener(this), this);
         getServer().getPluginManager().registerEvents(new SpawnerAnalyticsListener(analytics, spawnerData), this);
         getServer().getPluginManager().registerEvents(splitGui, this);
@@ -65,10 +63,13 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         pluginCommand.setExecutor(command);
         pluginCommand.setTabCompleter(command);
 
+        // Repair persisted zero-range / zero-nearby values left by older
+        // MiraSpawners/MiraLoaders builds. Baseline spawner behavior is now
+        // always normal player-range activation unless a fueled loader is active.
         getServer().getScheduler().runTask(this, activation::normalizeLoadedChunks);
 
         core.modules().setHealth(this, ModuleHealth.HEALTHY,
-                "Spawner stacking, loaded-chunk activation, MiraLoaders off-player spawning, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
+                "Spawner stacking, normal player-range activation, MiraLoaders off-player spawning, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
         getLogger().info("MiraSpawners v" + getPluginMeta().getVersion() + " enabled.");
     }
 
@@ -93,7 +94,8 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
     public boolean silkTouchRequired() { return getConfig().getBoolean("spawners.silk-touch-required", true); }
     public boolean naturalSpawnersHarvestable() { return getConfig().getBoolean("spawners.natural-spawners-harvestable", true); }
     public boolean protectSpawnersFromExplosions() { return getConfig().getBoolean("spawners.protect-from-explosions", true); }
-    public boolean activateManagedSpawnersInLoadedChunks() { return getConfig().getBoolean("spawners.activate-in-loaded-chunks", true); }
+    public int spawnerRequiredPlayerRange() { return Math.max(1, getConfig().getInt("spawners.required-player-range", 16)); }
+    public int spawnerMaxNearbyEntities() { return Math.max(1, getConfig().getInt("spawners.max-nearby-entities", 6)); }
     public int maxMobStack() { return Math.max(1, getConfig().getInt("mobs.max-stack-size", 1000)); }
     public double mergeRadius() { return Math.max(0.5D, getConfig().getDouble("mobs.merge-radius", 6.0D)); }
     public boolean showMobStackName() { return getConfig().getBoolean("mobs.show-stack-name", true); }
