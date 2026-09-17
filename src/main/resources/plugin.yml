@@ -1,5 +1,5 @@
 name: MiraSpawners
-version: 0.1.15
+version: 0.1.16
 main: com.mira.spawners.MiraSpawnersPlugin
 api-version: '1.21'
 authors: [FiveS]
