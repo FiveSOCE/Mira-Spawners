@@ -42,11 +42,22 @@ public final class MobStackService {
     }
 
     public void handleSpawnerSpawn(SpawnerSpawnEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity incomingEntity)) {
-            return;
-        }
+        if (!(event.getEntity() instanceof LivingEntity incomingEntity)) return;
+        if (processSpawnerSpawn(incomingEntity, event.getSpawner())) event.setCancelled(true);
+    }
 
-        CreatureSpawner source = event.getSpawner();
+    /**
+     * MiraLoaders can drive a spawner while no real player exists. Those spawns
+     * still use SpawnReason.SPAWNER, but Bukkit cannot associate the manually
+     * driven cycle with SpawnerSpawnEvent. MiraLoaders marks the source block,
+     * and this overload preserves the exact same Mira mob-stack behavior.
+     */
+    public void handleLoaderSpawnerSpawn(CreatureSpawnEvent event, CreatureSpawner source) {
+        LivingEntity incomingEntity = event.getEntity();
+        if (processSpawnerSpawn(incomingEntity, source)) event.setCancelled(true);
+    }
+
+    private boolean processSpawnerSpawn(LivingEntity incomingEntity, CreatureSpawner source) {
         int baseCount = source == null ? 1 : spawnerData.stackSize(source);
         double multiplier = source == null ? 1.0D : plugin.multipliers().effective(source.getLocation());
         int incomingCount = (int) Math.round(baseCount * multiplier);
@@ -55,32 +66,24 @@ public final class MobStackService {
         LivingEntity target = findMergeTarget(incomingEntity);
         if (target == null) {
             setStackSize(incomingEntity, incomingCount);
-            return;
+            return false;
         }
 
         int current = stackSize(target);
         StackMath.Transfer transfer = StackMath.transfer(current, incomingCount, plugin.maxMobStack());
-        if (transfer.accepted() > 0) {
-            setStackSize(target, current + transfer.accepted());
-        }
+        if (transfer.accepted() > 0) setStackSize(target, current + transfer.accepted());
 
-        if (transfer.remainder() == 0) {
-            event.setCancelled(true);
-        } else {
-            setStackSize(incomingEntity, transfer.remainder());
-        }
+        if (transfer.remainder() == 0) return true;
+        setStackSize(incomingEntity, transfer.remainder());
+        return false;
     }
 
     public void handleDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!isManaged(entity)) {
-            return;
-        }
+        if (!isManaged(entity)) return;
 
         int count = stackSize(entity);
-        if (count <= 1) {
-            return;
-        }
+        if (count <= 1) return;
 
         EntityDamageEvent lastDamage = entity.getLastDamageCause();
         boolean directLavaDeath = plugin.lavaStackKill()
@@ -97,13 +100,9 @@ public final class MobStackService {
         EntityType type = entity.getType();
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             World world = location.getWorld();
-            if (world == null) {
-                return;
-            }
+            if (world == null) return;
             Entity replacement = world.spawnEntity(location, type, CreatureSpawnEvent.SpawnReason.SPAWNER);
-            if (replacement instanceof LivingEntity living) {
-                setStackSize(living, remaining);
-            }
+            if (replacement instanceof LivingEntity living) setStackSize(living, remaining);
         });
     }
 
@@ -186,9 +185,7 @@ public final class MobStackService {
 
     private static void addDrops(Map<ItemStack, Integer> totals, Collection<ItemStack> drops) {
         for (ItemStack drop : drops) {
-            if (drop == null || drop.getType().isAir() || drop.getAmount() <= 0) {
-                continue;
-            }
+            if (drop == null || drop.getType().isAir() || drop.getAmount() <= 0) continue;
             ItemStack key = drop.clone();
             int amount = key.getAmount();
             key.setAmount(1);
