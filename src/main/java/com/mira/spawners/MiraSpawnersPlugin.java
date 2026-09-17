@@ -48,6 +48,9 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnerListener(this, core, spawnerData, spawnerItems, mobStacks), this);
         getServer().getPluginManager().registerEvents(new SpawnerActivationListener(this, activation), this);
         getServer().getPluginManager().registerEvents(new MobSpawnPolicyListener(mobSpawnPolicy), this);
+        // Registered after the global spawn policy so loader-driven spawns obey
+        // the same restrictions before Mira stacking is applied.
+        getServer().getPluginManager().registerEvents(new LoaderDrivenSpawnerListener(this), this);
         getServer().getPluginManager().registerEvents(new SpawnerAnalyticsListener(analytics, spawnerData), this);
         getServer().getPluginManager().registerEvents(splitGui, this);
         getServer().getPluginManager().registerEvents(new SpawnerFeatureCommandListener(this, analytics, splitGui), this);
@@ -61,12 +64,10 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
         pluginCommand.setExecutor(command);
         pluginCommand.setTabCompleter(command);
 
-        // Normalize already-loaded managed spawners after enable. New chunks and
-        // placements are handled by SpawnerActivationListener.
         getServer().getScheduler().runTask(this, activation::normalizeLoadedChunks);
 
         core.modules().setHealth(this, ModuleHealth.HEALTHY,
-                "Spawner stacking, loaded-chunk activation, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
+                "Spawner stacking, loaded-chunk activation, MiraLoaders off-player spawning, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
         getLogger().info("MiraSpawners v" + getPluginMeta().getVersion() + " enabled.");
     }
 
