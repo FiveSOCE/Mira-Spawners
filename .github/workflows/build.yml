@@ -50,13 +50,17 @@ jobs:
       - run: gradle clean test build -PpaperApiVersion=1.21.11-R0.1-SNAPSHOT -PcompileJavaVersion=21 -PbytecodeJavaVersion=21 --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: MiraSpawners-0.1.15
-          path: build/libs/MiraSpawners-0.1.15.jar
+          name: MiraSpawners-0.1.16
+          path: build/libs/MiraSpawners-0.1.16.jar
           if-no-files-found: error
       - name: Publish release
         if: success() && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v0.1.15"; JAR="build/libs/MiraSpawners-0.1.15.jar"
-          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" "$JAR" --clobber; else gh release create "$TAG" "$JAR" --target "${{ github.sha }}" --title "MiraSpawners v0.1.15" --notes "Fixes Mira spawner farm regressions with MiraLoaders: loader-driven mobs now use safe block-centred spawn cells, inactive loaders no longer interfere with native spawners, legacy zeroed spawner settings are repaired by MiraLoaders, and Mira-managed stack-name death spam is suppressed."; fi
+          TAG="v0.1.16"; JAR="build/libs/MiraSpawners-0.1.16.jar"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$JAR" --clobber
+          else
+            gh release create "$TAG" "$JAR" --target "${{ github.sha }}" --title "MiraSpawners v0.1.16" --notes "Restores the intended spawner state machine: no loader or an unfueled loader uses normal nearby-player activation; a fueled MiraLoader supplements off-player spawning. Repairs persisted zero player-range/max-nearby values from older builds and allows ordinary physical spawners as valid spawn sources alongside Mira-managed spawners."
+          fi
