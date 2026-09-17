@@ -3,6 +3,12 @@ spawners:
   silk-touch-required: true
   natural-spawners-harvestable: true
   protect-from-explosions: true
+
+  # Baseline spawner behavior when there is no active fueled MiraLoader.
+  # Old builds used 0 here internally; v0.1.16 repairs those persisted values.
+  required-player-range: 16
+  max-nearby-entities: 6
+
   split-gui:
     enabled: true
 
@@ -16,9 +22,8 @@ mobs:
   show-stack-name: true
   lava-stack-kill: true
 
-  # Hostile mobs may only exist when they originate from a Mira-managed,
-  # player-placed mob spawner. Natural hostile spawning and natural vanilla
-  # hostile spawners are blocked.
+  # Natural/unmanaged hostile spawning can be blocked while physical spawners,
+  # Mira-managed spawners, command spawns and intentional plugin spawns remain valid.
   block-non-spawner-hostiles: true
 
   # These mobs are disabled completely, including spawners, eggs,
