@@ -1,38 +1,37 @@
 # MiraSpawners
 
+MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper server suite. It provides typed Silk Touch spawners, placed spawner stacks, mob stacking, spawn-policy controls and spawner efficiency/faction analytics.
+
 ## Download
 
-**Latest compatibility release: v0.1.13**
+**Latest compatibility release: v0.1.14**
 
-[**Download MiraSpawners-0.1.13.jar**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.13/MiraSpawners-0.1.13.jar)
+[**Download MiraSpawners-0.1.14.jar**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.14/MiraSpawners-0.1.14.jar)
 
 [View all releases](https://github.com/FiveSOCE/Mira-Spawners/releases)
 
-## v0.1.12 hard spawn blocks
+## v0.1.14 MiraLoaders integration
 
-MiraSpawners now treats a configured `fully-blocked-types` entry as a genuine hard block. The check runs before the CUSTOM/COMMAND exemption, so a fully blocked mob cannot be reintroduced by a command or another plugin.
+MiraSpawners now understands spawns driven by **MiraLoaders v0.2.2+** while no real player is in range or even online.
 
-Current default hard blocks include:
+MiraLoaders owns the physical spawner clock while its chunk loader is fueled and marks the originating spawner before the `SpawnReason.SPAWNER` event fires. MiraSpawners resolves that source block and applies the normal Mira behavior:
 
-- Bat
-- Stray
-- **Phantom**
+- placed spawner stack size
+- effective `spawner_rate` multiplier
+- mob-stack merging
+- configured hard spawn-policy blocks
+- adult-only managed-spawner safety rules
+- chicken-jockey cleanup
+- normal death/drop stack behavior
 
-Baby Zombies are also rejected as a forbidden variant regardless of spawn source. This blocks baby zombies from Mira-managed spawners and the general world, which in turn prevents chicken-jockey Zombie riders from existing. Loaded forbidden entities are removed during the existing chunk-load policy sweep.
-
-## v0.1.10 adult-only managed spawns
-
-Mira-managed/player-placed spawners force spawned mobs into their adult form. This prevents baby zombies and other baby-capable variants from managed spawners without changing natural, command, or event spawns.
-
-# MiraSpawners
-
-MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper server suite. It provides typed Silk Touch spawners, placed spawner stacks, mob stacking, spawn-policy controls and spawner efficiency/faction analytics.
+This keeps loader-driven Mira spawners behaviorally consistent with ordinary player-activated Mira spawners.
 
 ## Requirements / Dependencies
 
-- Paper 1.21.11
-- Java 21
+- Paper/Minecraft 1.21.11 through 26.2
+- Java 21 production runtime
 - MiraCore 0.2.0 or newer
+- MiraLoaders v0.2.2+ optional for off-player loaded-chunk spawner operation
 - MiraFactions optional for faction-linked analytics
 - MiraBoosters optional for global `spawner_rate` multipliers
 - MiraOutposts optional for faction-owned `spawner_rate` multipliers
@@ -45,7 +44,19 @@ The spawn-policy layer can block natural/unmanaged hostile spawning while allowi
 
 The optional split GUI lets an administrator split 1, 8, 16, 32, half, or all-but-one spawners from a placed stack while always leaving at least one spawner placed.
 
-v0.1.12 makes spawner output multiplier-aware. Global `spawner_rate` boosters and faction-owned outpost `spawner_rate` bonuses are combined at spawn time, while analytics cache faction ownership on stack/spawn updates and expose server-wide and per-faction units-per-hour estimates through commands and the public API.
+Global `spawner_rate` boosters and faction-owned outpost `spawner_rate` bonuses are combined at spawn time, while analytics cache faction ownership on stack/spawn updates and expose server-wide and per-faction units-per-hour estimates through commands and the public API.
+
+## Spawn Policy
+
+A configured `fully-blocked-types` entry is a genuine hard block. The check runs before the CUSTOM/COMMAND exemption, so a fully blocked mob cannot be reintroduced by a command or another plugin.
+
+Current default hard blocks include:
+
+- Bat
+- Stray
+- Phantom
+
+Baby Zombies are also rejected as a forbidden variant regardless of spawn source. Mira-managed/player-placed spawners reject baby-capable variants and chicken-jockey combinations without changing unrelated natural, command or event spawning.
 
 ## Commands
 
