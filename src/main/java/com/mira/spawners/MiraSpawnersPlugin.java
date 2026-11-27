@@ -70,7 +70,7 @@ public final class MiraSpawnersPlugin extends JavaPlugin {
 
         core.modules().setHealth(this, ModuleHealth.HEALTHY,
                 "Spawner stacking, normal player-range activation, MiraLoaders off-player spawning, multiplier-aware mob stacking, efficiency analytics and faction analytics ready");
-        getLogger().info("MiraSpawners v" + getPluginMeta().getVersion() + " enabled.");
+        getLogger().info("MiraSpawners v" + getDescription().getVersion() + " enabled.");
     }
 
     @Override
