@@ -1,0 +1,43 @@
+name: Build MiraSpawners Paper 1.18.2
+on:
+  push:
+    branches: ['compat/1.18.2']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  legacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10'
+      - name: Build Paper 1.18.2
+        run: gradle clean test build --no-daemon --stacktrace
+      - name: Verify legacy plugin
+        shell: bash
+        run: |
+          set -euo pipefail
+          JAR=build/libs/MiraSpawners_1.18.2.jar
+          test -s "$JAR"
+          jar tf "$JAR" | grep -Fx plugin.yml
+          jar tf "$JAR" | grep -Fx com/mira/spawners/MiraSpawnersPlugin.class
+          javap -verbose -classpath "$JAR" com.mira.spawners.MiraSpawnersPlugin | grep -F 'major version: 61'
+          unzip -p "$JAR" plugin.yml | grep -F "api-version: '1.18'"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiraSpawners_1.18.2
+          path: build/libs/MiraSpawners_1.18.2.jar
+          if-no-files-found: error
+      - name: Publish 1.18.2 development build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view dev-1.18.2 >/dev/null 2>&1 || gh release create dev-1.18.2 --prerelease --title 'MiraSpawners Paper 1.18.2' --notes 'Java 17 Paper 1.18.2 build targeting MiraCore legacy. MiraLoaders optional. In-game compatibility validation pending.' --target "$GITHUB_SHA"
+          gh release upload dev-1.18.2 build/libs/MiraSpawners_1.18.2.jar --clobber
