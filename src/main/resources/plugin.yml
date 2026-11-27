@@ -1,7 +1,7 @@
 name: MiraSpawners
-version: 0.1.16
+version: 0.1.16-1.18.2
 main: com.mira.spawners.MiraSpawnersPlugin
-api-version: '1.21'
+api-version: '1.18'
 authors: [FiveS]
 description: Stackable spawners and performance-friendly mob stacking for the Mira plugin ecosystem.
 depend: [MiraCore]
