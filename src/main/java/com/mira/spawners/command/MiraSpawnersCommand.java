@@ -185,7 +185,7 @@ public final class MiraSpawnersCommand implements TabExecutor {
     }
 
     private void sendInfo(CommandSender sender) {
-        core.messages().send(sender, "&dMiraSpawners &fv" + plugin.getPluginMeta().getVersion());
+        core.messages().send(sender, "&dMiraSpawners &fv" + plugin.getDescription().getVersion());
         core.messages().send(sender, "&7Spawner stack maximum: &f" + plugin.maxSpawnerStack());
         core.messages().send(sender, "&7Mob stack maximum: &f" + plugin.maxMobStack());
         core.messages().send(sender, "&7Mob merge radius: &f" + plugin.mergeRadius() + " blocks");
