@@ -2,13 +2,33 @@
 
 MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper server suite. It provides typed Silk Touch spawners, placed spawner stacks, mob stacking, spawn-policy controls and spawner efficiency/faction analytics.
 
-## Download
+## Versioned download links
 
-**Latest compatibility release: v0.1.16**
+| Server target | Java | Final JAR | Download |
+| --- | --- | --- | --- |
+| **Paper 1.18.2** | 17 | `MiraSpawners_1.18.2.jar` | [Legacy release](https://github.com/FiveSOCE/Mira-Spawners/releases/download/dev-1.18.2/MiraSpawners_1.18.2.jar) |
+| **Paper 1.21.11–26.2** | 21 baseline; 26.2 server requires newer Java | `MiraSpawners_1.21.11-26.2.jar` | [Modern release](https://github.com/FiveSOCE/Mira-Spawners/releases/download/compat-modern-1.21.11-26.2/MiraSpawners_1.21.11-26.2.jar) |
 
-[**Download MiraSpawners-0.1.16.jar**](https://github.com/FiveSOCE/Mira-Spawners/releases/download/v0.1.16/MiraSpawners-0.1.16.jar)
+Links are available only after CI passes and the release artifacts are published. **Intermediate Minecraft 1.19–1.21.10 and 1:1 runtime parity are not yet certified.** Choose exactly one JAR.
 
-[View all releases](https://github.com/FiveSOCE/Mira-Spawners/releases)
+[Legacy source](https://github.com/FiveSOCE/Mira-Spawners/tree/compat/1.18.2) · [Modern source](https://github.com/FiveSOCE/Mira-Spawners) · [All releases](https://github.com/FiveSOCE/Mira-Spawners/releases)
+
+## Dependencies and setup
+
+- **Required:** A matching Paper server/runtime and MiraCore for the same version.
+- **Optional:** MiraLoaders for off-player spawner activity; MiraFactions for linked ownership/valuation; MiraBoosters and MiraOutposts for rate modifiers.
+- Back up `plugins/MiraSpawners/` before switching Minecraft versions. Do not install mismatched MiraCore or duplicate Spawners JARs.
+
+## Permissions
+
+| Permission | Default | Function |
+| --- | --- | --- |
+| `miraspawners.admin` | OP | Commands, spawning, diagnostics and analytics |
+| `miraspawners.mine` | Everyone | Silk Touch harvest spawners |
+| `miraspawners.stack` | Everyone | Combine matching placed spawners |
+| `miraspawners.inspect` | Everyone | Inspect stack counts |
+
+The full commands table and spawner mechanics follow below.
 
 ## v0.1.16 Spawner Activation Repair
 
