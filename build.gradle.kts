@@ -51,3 +51,5 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.test { useJUnitPlatform() }
+
+tasks.jar { archiveFileName.set("MiraSpawners_1.21.11-26.2.jar") }
