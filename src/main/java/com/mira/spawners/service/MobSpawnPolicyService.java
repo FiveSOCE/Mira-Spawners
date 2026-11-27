@@ -3,7 +3,7 @@ package com.mira.spawners.service;
 import com.mira.spawners.MiraSpawnersPlugin;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.CreatureSpawner;
-import org.bukkit.entity.Enemy;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Zombie;
@@ -59,7 +59,7 @@ public final class MobSpawnPolicyService {
     }
 
     public boolean isHostile(LivingEntity entity) {
-        return entity instanceof Enemy;
+        return entity instanceof Monster || Set.of("GHAST", "SLIME", "MAGMA_CUBE", "PHANTOM", "SHULKER").contains(entity.getType().name());
     }
 
     public boolean shouldCancelSpawn(LivingEntity entity, CreatureSpawnEvent.SpawnReason reason) {
