@@ -2,14 +2,14 @@
 
 MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper server suite. It provides typed Silk Touch spawners, placed spawner stacks, mob stacking, spawn-policy controls and spawner efficiency/faction analytics.
 
-## Versioned download links
+## Downloads and compatibility
 
-| Server target | Java | Final JAR | Download |
+| Server target | Java | Final JAR name | Download |
 | --- | --- | --- | --- |
-| **Paper 1.18.2** | 17 | `MiraSpawners_1.18.2.jar` | [Legacy release](https://github.com/FiveSOCE/Mira-Spawners/releases/download/dev-1.18.2/MiraSpawners_1.18.2.jar) |
-| **Paper 1.21.11–26.2** | 21 baseline; 26.2 server requires newer Java | `MiraSpawners_1.21.11-26.2.jar` | [Modern release](https://github.com/FiveSOCE/Mira-Spawners/releases/download/compat-modern-1.21.11-26.2/MiraSpawners_1.21.11-26.2.jar) |
+| **Paper 1.18.2** | 17 | `MiraSpawners_1.18.2.jar` | [Download 1.18.2 JAR](https://github.com/FiveSOCE/Mira-Spawners/releases/download/dev-1.18.2/MiraSpawners_1.18.2.jar) |
+| **Paper 1.21.11–26.2** | Java 21 baseline; Paper 26.2 may require Java 25 | `MiraSpawners_1.21.11-26.2.jar` | [Download modern JAR](https://github.com/FiveSOCE/Mira-Spawners/releases/download/compat-modern-1.21.11-26.2/MiraSpawners_1.21.11-26.2.jar) |
 
-Links are available only after CI passes and the release artifacts are published. **Intermediate Minecraft 1.19–1.21.10 and 1:1 runtime parity are not yet certified.** Choose exactly one JAR.
+Select only one JAR matching the server version. Published builds require in-game validation for full feature compatibility.
 
 [Legacy source](https://github.com/FiveSOCE/Mira-Spawners/tree/compat/1.18.2) · [Modern source](https://github.com/FiveSOCE/Mira-Spawners) · [All releases](https://github.com/FiveSOCE/Mira-Spawners/releases)
 
