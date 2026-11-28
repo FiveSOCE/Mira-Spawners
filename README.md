@@ -9,7 +9,10 @@ MiraSpawners is the stacked-spawner and mob-farming layer for the Mira Paper ser
 | **Paper 1.18.2** | 17 | `MiraSpawners_1.18.2.jar` | [Download 1.18.2 JAR](https://github.com/FiveSOCE/Mira-Spawners/releases/download/dev-1.18.2/MiraSpawners_1.18.2.jar) |
 | **Paper 1.21.11–26.2** | Java 21 baseline; Paper 26.2 may require Java 25 | `MiraSpawners_1.21.11-26.2.jar` | [Download modern JAR](https://github.com/FiveSOCE/Mira-Spawners/releases/download/compat-modern-1.21.11-26.2/MiraSpawners_1.21.11-26.2.jar) |
 
-Select only one JAR matching the server version. Published builds require in-game validation for full feature compatibility.
+
+**Build status:** Download links above identify published version-specific artifacts where available. Where only GitHub Actions or Releases is listed, a direct version-specific JAR has not been verified. Compilation does not establish in-game compatibility; intermediate versions 1.19–1.21.10 are not verified unless specifically documented.
+
+**Installation:** Back up the plugin's data directory, remove older copies of this plugin and install only the JAR matching your server version. Never install both builds together.
 
 [Legacy source](https://github.com/FiveSOCE/Mira-Spawners/tree/compat/1.18.2) · [Modern source](https://github.com/FiveSOCE/Mira-Spawners) · [All releases](https://github.com/FiveSOCE/Mira-Spawners/releases)
 
@@ -66,7 +69,7 @@ MiraLoaders owns only the supplemental off-player clock. MiraSpawners remains au
 
 Loader-driven mobs are spawned through safe block-centred air cells so checkerboard/one-block-gap farm layouts do not place zombies inside neighbouring spawner blocks.
 
-## Requirements / Dependencies
+## Dependencies and installation
 
 - Paper/Minecraft 1.21.11 through 26.2
 - Java 21 production runtime
